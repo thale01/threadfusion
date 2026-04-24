@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Address | ThreadFusion{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="auth-form-container" style="max-width: 600px;">
+        <div class="glass p-5 rounded-4 shadow-lg">
+            <h2 class="fw-bold mb-4 d-flex align-items-center">
+                <i class="fa-solid fa-map-location-dot text-primary me-3"></i> 
+                Add Shipping Address
+            </h2>
+            <p class="text-secondary small mb-5">Please provide your details for accurate delivery of your handmade treasures.</p>
+
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label class="form-label text-secondary small fw-bold">Full Name</label>
+                    <input type="text" name="full_name" required class="form-control" placeholder="Jane Doe">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="form-label text-secondary small fw-bold">Phone Number</label>
+                    <input type="text" name="phone" required class="form-control" placeholder="+91 00000 00000">
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small fw-bold">City</label>
+                        <input type="text" name="city" required class="form-control" placeholder="Mumbai">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small fw-bold">Postal Code</label>
+                        <input type="text" name="zip" required class="form-control" placeholder="400001">
+                    </div>
+                </div>
+
+                <div class="mb-5">
+                    <label class="form-label text-secondary small fw-bold">Street Address</label>
+                    <textarea name="street" rows="3" required class="form-control" placeholder="123 Handmade St, Apartment 4B"></textarea>
+                </div>
+
+                <div class="d-flex gap-3">
+                    <a href="javascript:history.back()" class="btn btn-outline-primary px-4 py-3 rounded-3 flex-grow-1">Cancel</a>
+                    <button type="submit" class="btn btn-primary px-5 py-3 rounded-3 flex-grow-2 shadow btn-mobile-full">
+                        Save Address
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .flex-grow-2 { flex-grow: 2; }
+</style>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Order History | ThreadFusion{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-5" data-aos="fade-right">
+        <div>
+            <h1 class="display-5 fw-bold mb-0">Order History</h1>
+            <p class="text-secondary small">Track your handmade treasures and download invoices</p>
+        </div>
+        <a href="{% url 'product_list' %}" class="btn btn-outline-primary rounded-pill px-4 d-none d-md-block fw-bold small">Shop More</a>
+    </div>
+    
+    <div class="row g-4">
+        {% for order in orders %}
+            <div class="col-12" data-aos="fade-up" data-aos-delay="{{ forloop.counter }}00">
+                <div class="bg-white p-4 rounded-4 border border-accent shadow-sm">
+                    <div class="row g-4 align-items-center">
+                        <div class="col-md-3 text-center text-md-start">
+                            <h6 class="text-secondary small fw-bold text-uppercase mb-1">Order Number</h6>
+                            <h5 class="fw-bold mb-0">#TF-{{ order.id }}</h5>
+                        </div>
+                        <div class="col-6 col-md-2 text-center text-md-start">
+                            <h6 class="text-secondary small fw-bold text-uppercase mb-1">Status</h6>
+                            <span class="status {% if order.status == 'Pending' %}pending{% elif order.status == 'Processing' %}processing{% elif order.status == 'Shipped' %}shipped{% elif order.status == 'Delivered' %}delivered{% endif %}">
+                                {{ order.status }}
+                                {% if order.status == 'Pending' %}🟡{% elif order.status == 'Processing' %}🔵{% elif order.status == 'Shipped' %}🟣{% elif order.status == 'Delivered' %}🟢{% endif %}
+                            </span>
+                        </div>
+                        <div class="col-6 col-md-2 text-center text-md-start">
+                            <h6 class="text-secondary small fw-bold text-uppercase mb-1">Total</h6>
+                            <p class="fw-bold text-main mb-0">₹{{ order.total_price }}</p>
+                        </div>
+                        <div class="col-md-3 text-center text-md-start">
+                            <h6 class="text-secondary small fw-bold text-uppercase mb-1">Date</h6>
+                            <p class="text-secondary mb-0 small">{{ order.created_at|date:"M d, Y" }}</p>
+                        </div>
+                        <div class="col-md-2 text-center text-md-end">
+                            <div class="d-grid d-md-flex justify-content-md-end gap-2">
+                                <a href="{% url 'invoice' order.id %}" class="btn btn-sm btn-accent text-main rounded-pill px-3 shadow-sm border border-white">
+                                    <i class="fa-solid fa-file-pdf me-1"></i> Download Invoice (PDF)
+                                </a>
+                                <a href="{% url 'order_detail' order.id %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                    Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12 text-center py-5 bg-white rounded-5 shadow-sm border border-accent border-dashed" data-aos="zoom-in">
+                <div class="bg-accent p-4 rounded-circle d-inline-flex mb-4">
+                    <i class="fa-solid fa-receipt display-3 text-primary"></i>
+                </div>
+                <h3 class="fw-bold">No orders found</h3>
+                <p class="text-secondary mb-4">Your handmade journey starts here!</p>
+                <a href="{% url 'product_list' %}" class="btn btn-primary px-5 rounded-pill shadow">Start Shopping</a>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .status {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .pending { background: #fff3cd; color: #856404; }
+    .processing { background: #cce5ff; color: #004085; }
+    .shipped { background: #e2d6f3; color: #4b0082; }
+    .delivered { background: #d4edda; color: #155724; }
+</style>
+{% endblock %}

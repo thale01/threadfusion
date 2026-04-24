@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Customize Your Dream | ThreadFusion{% endblock %}
+
+{% block content %}
+<section class="py-5" style="background: linear-gradient(180deg, var(--accent) 0%, var(--bg-main) 100%);">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="auth-form-container" style="max-width: 800px;">
+                    <div class="glass p-5 rounded-4 shadow-lg text-center">
+                        <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex p-4 mb-4">
+                            <i class="fa-solid fa-wand-magic-sparkles display-5 text-primary"></i>
+                        </div>
+                        <h2 class="display-5 fw-bold mb-3">Create Your Own Design 🎨</h2>
+                        <p class="text-muted lead mb-5">Have a specific idea in mind? Our master artisans are ready to bring your imagination to life. Share your vision below.</p>
+                        
+                        <form method="POST" enctype="multipart/form-data" class="text-start">
+                            {% csrf_token %}
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <label class="form-label text-secondary small fw-bold">Full Name</label>
+                                    <input type="text" class="form-control glass border-secondary border-opacity-25 py-3 px-4 rounded-3" placeholder="Jane Doe" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-secondary small fw-bold">Email Address</label>
+                                    <input type="email" class="form-control glass border-secondary border-opacity-25 py-3 px-4 rounded-3" placeholder="jane@example.com" required>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label text-secondary small fw-bold">Art Category</label>
+                                    <select class="form-select glass border-secondary border-opacity-25 py-3 px-4 rounded-3">
+                                        <option selected>Select a category</option>
+                                        <option value="pottery">Bespoke Pottery</option>
+                                        <option value="textile">Custom Textiles</option>
+                                        <option value="jewelry">Designer Jewelry</option>
+                                        <option value="other">Other Artisan Craft</option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label text-secondary small fw-bold">Describe Your Vision</label>
+                                    <textarea class="form-control glass border-secondary border-opacity-25 py-3 px-4 rounded-3" rows="5" placeholder="Tell us about the colors, textures, and details you dream of..." required></textarea>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label text-secondary small fw-bold">Reference Image (Optional)</label>
+                                    <div class="border border-dashed border-secondary border-opacity-25 p-5 rounded-4 text-center glass">
+                                        <i class="fa-solid fa-cloud-arrow-up text-primary fs-2 mb-3"></i>
+                                        <p class="text-muted small mb-0">Drag and drop or <span class="text-primary fw-bold">browse</span> to upload your sketch</p>
+                                        <input type="file" class="position-absolute opacity-0" style="bottom: 0px; left: 0px; width: 100%; height: 100%; cursor: pointer;">
+                                    </div>
+                                </div>
+                                <div class="col-12 pt-3">
+                                    <button type="button" class="btn btn-primary btn-lg w-100 py-3 rounded-pill shadow" onclick="alert('Submission received! Our artisans will contact you shortly.')">
+                                        Submit Custom Request
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .border-dashed { border-style: dashed !important; border-width: 2px !important; }
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(176, 137, 104, 0.1);
+        background: rgba(255, 255, 255, 0.9);
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,156 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ThreadFusion | Handmade Elegance{% endblock %}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+</head>
+<body>
+    <div id="loading-bar"></div>
+    
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg sticky-top glass py-3">
+        <div class="container">
+            <a class="navbar-brand fw-bold nav-brand" href="{% url 'home' %}" data-aos="fade-right">THREADFUSION</a>
+            
+            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navContent">
+                <i class="fa-solid fa-bars-staggered" style="color: var(--text-main); font-size: 1.5rem;"></i>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navContent">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link px-3 text-main fw-medium" href="{% url 'home' %}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-3 text-main fw-medium" href="{% url 'product_list' %}">Shop</a>
+                    </li>
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link px-3 text-main" href="{% url 'wishlist' %}" title="Wishlist">
+                                <i class="fa-regular fa-heart"></i>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link px-3 text-main" href="{% url 'cart' %}">
+                                <i class="fa-solid fa-bag-shopping me-1"></i>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link px-3 text-main" href="{% url 'profile' %}">
+                                <i class="fa-regular fa-user"></i>
+                            </a>
+                        </li>
+                        <li class="nav-item ms-lg-2">
+                            <a class="nav-link text-muted small" href="{% url 'logout' %}">Logout</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link px-3 text-main" href="{% url 'login' %}">Login</a>
+                        </li>
+                        <li class="nav-item ms-lg-3">
+                            <a class="btn btn-primary rounded-pill px-4" href="{% url 'signup' %}">Join</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="message {{ message.tags }} shadow-lg" data-aos="fade-left">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="mt-5 py-5" style="background: var(--primary); color: var(--white); border-top: 5px solid var(--accent);">
+        <div class="container">
+            <div class="row g-5">
+                <div class="col-lg-4" data-aos="fade-up">
+                    <h4 class="fw-bold mb-4 nav-brand">THREADFUSION</h4>
+                    <p class="text-white-50 small mb-4" style="max-width: 300px;">Crafting unique, handmade pieces with a focus on quality and soul. Each item tells a story of artistry and precision.</p>
+                    <div class="d-flex gap-3">
+                        <a href="https://www.instagram.com/_threadfusion_?igsh=cnJnb29nNGNiNzhr" class="text-white" target="_blank"><i class="fa-brands fa-instagram fs-5"></i></a>
+                        <a href="https://pin.it/3ucYw4bFc" class="text-white" target="_blank"><i class="fa-brands fa-pinterest fs-5"></i></a>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-2" data-aos="fade-up" data-aos-delay="100">
+                    <h6 class="fw-bold mb-4 text-white">Shop</h6>
+                    <ul class="list-unstyled d-grid gap-2">
+                        <li><a href="{% url 'product_list' %}" class="text-white-50 text-decoration-none small">All Products</a></li>
+                        <li><a href="{% url 'product_list' %}?sort=newest" class="text-white-50 text-decoration-none small">New Arrivals</a></li>
+                        <li><a href="{% url 'product_list' %}?filter=featured" class="text-white-50 text-decoration-none small">Bestsellers</a></li>
+                    </ul>
+                </div>
+                <div class="col-6 col-lg-2" data-aos="fade-up" data-aos-delay="200">
+                    <h6 class="fw-bold mb-4 text-white">Support</h6>
+                    <ul class="list-unstyled d-grid gap-2">
+                        <li><a href="{% url 'shipping' %}" class="text-white-50 text-decoration-none small">Shipping Info</a></li>
+                        <li><a href="{% url 'returns' %}" class="text-white-50 text-decoration-none small">Returns</a></li>
+                        <li><a href="{% url 'contact' %}" class="text-white-50 text-decoration-none small">Contact Us</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-4" data-aos="fade-up" data-aos-delay="300">
+                    <h6 class="fw-bold mb-4 text-white">Newsletter</h6>
+                    <p class="text-white-50 small mb-3">Join our community for exclusive updates and artisan stories.</p>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control border-0 bg-white" placeholder="email@example.com">
+                        <button class="btn btn-accent px-4 fw-bold" type="button" style="background: var(--accent); color: var(--primary); border: none;">Join</button>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-5" style="opacity: 0.1; background-color: var(--white);">
+            <div class="text-center">
+                <p class="text-white-50 small mb-0">&copy; 2026 ThreadFusion. Handcrafted with care.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 1000,
+            once: true,
+            offset: 100
+        });
+
+        // Smooth scroll for anchors
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                if (targetId !== '#') {
+                    document.querySelector(targetId).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Hide messages after 5s
+        setTimeout(() => {
+            document.querySelectorAll('.message').forEach(el => {
+                el.style.opacity = '0';
+                setTimeout(() => el.remove(), 500);
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

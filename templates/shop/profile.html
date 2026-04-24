@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile | ThreadFusion{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row g-5">
+        <!-- Account Info & Addresses -->
+        <div class="col-lg-4">
+            <div class="mb-5">
+                <div class="text-center mb-4">
+                    <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex p-4 mb-3 shadow-sm border border-primary border-opacity-10">
+                        <i class="fa-solid fa-user-gear display-5 text-primary"></i>
+                    </div>
+                    <h3 class="fw-bold mb-0">{{ user.username }}</h3>
+                    <p class="text-secondary small">{{ user.email }}</p>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center mb-4 mt-5">
+                    <h5 class="fw-bold mb-0">My Addresses</h5>
+                    <a href="{% url 'add_address' %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                        <i class="fa-solid fa-plus me-1"></i> Add New
+                    </a>
+                </div>
+                
+                <div class="row g-3">
+                    {% for addr in addresses %}
+                        <div class="col-12">
+                            <div class="glass p-3 rounded-4 border border-secondary border-opacity-10 position-relative transition-hover card-profile">
+                                <div class="pe-5">
+                                    <h6 class="fw-bold mb-1 small">{{ addr.full_name }}</h6>
+                                    <p class="text-secondary mb-1 small" style="font-size: 0.75rem;">{{ addr.street_address }}</p>
+                                    <p class="text-secondary mb-0 small" style="font-size: 0.75rem;">{{ addr.city }}, {{ addr.postal_code }}</p>
+                                </div>
+                                {% if addr.is_default %}
+                                    <span class="position-absolute top-0 end-0 m-3 badge bg-primary bg-opacity-20 text-primary small py-1 px-2 border border-primary border-opacity-25" style="font-size: 0.65rem;">Default</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="col-12 text-center py-4 glass rounded-4 border-dashed">
+                            <p class="text-secondary small mb-0">No addresses saved yet.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Order History -->
+        <div class="col-lg-8">
+            <h3 class="fw-bold mb-4">Recent Orders</h3>
+            <div class="glass p-0 rounded-4 overflow-hidden border border-secondary border-opacity-10">
+                {% if orders %}
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead class="bg-white bg-opacity-5">
+                                <tr class="text-secondary small fw-bold">
+                                    <th class="ps-4 py-3">Order ID</th>
+                                    <th class="py-3">Date</th>
+                                    <th class="py-3">Total</th>
+                                    <th class="py-3">Status</th>
+                                    <th class="pe-4 py-3 text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in orders %}
+                                    <tr class="border-bottom border-secondary border-opacity-10">
+                                        <td class="ps-4 py-3 text-white fw-bold small">#{{ order.id }}</td>
+                                        <td class="py-3 text-secondary small">{{ order.created_at|date:"M d, Y" }}</td>
+                                        <td class="py-3 text-white fw-bold small">₹{{ order.total_price }}</td>
+                                        <td class="py-3">
+                                            {% if order.status == 'Delivered' %}
+                                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-10 py-1 px-2 small">Delivered</span>
+                                            {% elif order.status == 'Pending' %}
+                                                <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-10 py-1 px-2 small">Pending</span>
+                                            {% else %}
+                                                <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-10 py-1 px-2 small">Processing</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="pe-4 py-3 text-end">
+                                            <a href="{% url 'order_detail' order.id %}" class="btn btn-sm btn-link text-primary text-decoration-none small p-0">Details</a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5 px-4">
+                        <div class="bg-secondary bg-opacity-10 rounded-circle d-inline-flex p-4 mb-3">
+                            <i class="fa-solid fa-box-open display-6 text-secondary"></i>
+                        </div>
+                        <h5 class="fw-bold mb-1">No orders yet</h5>
+                        <p class="text-secondary small mb-4">Start your handmade journey by exploring our collection.</p>
+                        <a href="{% url 'product_list' %}" class="btn btn-primary rounded-pill px-4">Start Shopping</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card-profile:hover {
+        background: rgba(255, 255, 255, 0.08) !important;
+        transform: scale(1.02);
+    }
+    .border-dashed { border-style: dashed !important; border-width: 1px !important; }
+    .transition-hover { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+</style>
+{% endblock %}

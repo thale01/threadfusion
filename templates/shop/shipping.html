@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}Shipping & Delivery Info | ThreadFusion{% endblock %}
+
+{% block content %}
+<section class="py-5" style="background-color: var(--bg-main); min-height: 80vh;">
+    <div class="container py-lg-5">
+        <div class="text-center mb-5" data-aos="fade-down">
+            <h1 class="display-4 fw-bold text-primary mb-3" style="font-family: 'Playfair Display', serif;">Shipping & Delivery</h1>
+            <p class="text-muted fs-5 mx-auto" style="max-width: 600px;">Everything you need to know about how your handmade treasures reach your doorstep.</p>
+        </div>
+
+        <div class="row g-4 justify-content-center">
+            <!-- Processing Time -->
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+                <div class="bg-white p-5 rounded-5 shadow-sm border border-light h-100 text-center transition-all hover-up">
+                    <div class="bg-primary bg-opacity-10 d-inline-flex p-4 rounded-circle mb-4">
+                        <i class="fa-solid fa-wand-magic-sparkles fs-2 text-primary"></i>
+                    </div>
+                    <h5 class="fw-bold text-primary mb-3">Processing Time</h5>
+                    <p class="text-secondary mb-0">2–3 Business Days</p>
+                    <hr class="my-4 border-accent opacity-25">
+                    <p class="small text-muted italic">Each item is handcrafted with care after your order is confirmed.</p>
+                </div>
+            </div>
+
+            <!-- Delivery Time -->
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+                <div class="bg-white p-5 rounded-5 shadow-sm border border-light h-100 text-center transition-all hover-up">
+                    <div class="bg-primary bg-opacity-10 d-inline-flex p-4 rounded-circle mb-4">
+                        <i class="fa-solid fa-truck-fast fs-2 text-primary"></i>
+                    </div>
+                    <h5 class="fw-bold text-primary mb-3">Delivery Time</h5>
+                    <p class="text-secondary mb-0">7–14 Business Days</p>
+                    <hr class="my-4 border-accent opacity-25">
+                    <p class="small text-muted">We use reliable partners to ensure your delicate items arrive safely.</p>
+                </div>
+            </div>
+
+            <!-- Shipping Charge -->
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
+                <div class="bg-white p-5 rounded-5 shadow-sm border border-light h-100 text-center transition-all hover-up">
+                    <div class="bg-primary bg-opacity-10 d-inline-flex p-4 rounded-circle mb-4">
+                        <i class="fa-solid fa-money-bill-wave fs-2 text-primary"></i>
+                    </div>
+                    <h5 class="fw-bold text-primary mb-3">Shipping Fee</h5>
+                    <p class="text-secondary mb-0">₹99 Flat Rate</p>
+                    <hr class="my-4 border-accent opacity-25">
+                    <p class="small text-muted">Standard shipping across all orders, regardless of weight or size.</p>
+                </div>
+            </div>
+
+            <!-- Additional Information -->
+            <div class="col-lg-10 mt-5" data-aos="fade-up">
+                <div class="bg-white p-4 p-md-5 rounded-5 shadow-sm border border-light">
+                    <div class="row g-4 align-items-center">
+                        <div class="col-md-7">
+                            <h4 class="fw-bold text-primary mb-4">Good things take time 🎨</h4>
+                            <div class="d-grid gap-4">
+                                <div class="d-flex gap-3">
+                                    <i class="fa-solid fa-circle-check text-accent mt-1"></i>
+                                    <div>
+                                        <p class="mb-0 text-secondary"><strong>Handmade Note:</strong> All products are uniquely made after the order is received to ensure the highest quality and personalization.</p>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-3">
+                                    <i class="fa-solid fa-circle-exclamation text-accent mt-1"></i>
+                                    <div>
+                                        <p class="mb-0 text-secondary"><strong>Potential Delays:</strong> Please expect slight delays during peak festival seasons or high demand periods. Your patience supports artisan crafts!</p>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-3">
+                                    <i class="fa-solid fa-comments text-accent mt-1"></i>
+                                    <div>
+                                        <p class="mb-0 text-secondary"><strong>Need Updates?</strong> You can contact us via Instagram DM for real-time status updates on your order.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="bg-accent bg-opacity-30 p-5 rounded-5 text-center border border-white">
+                                <h6 class="fw-bold text-primary mb-4">Support & Queries</h6>
+                                <a href="{% url 'contact' %}" class="btn btn-primary rounded-pill w-100 py-3 mb-3 shadow">Contact Us</a>
+                                <p class="small text-primary mb-0 fw-bold"><a href="https://www.instagram.com/_threadfusion_?igsh=cnJnb29nNGNiNzhr" target="_blank" class="text-decoration-none" style="color: inherit;"><i class="fa-brands fa-instagram me-2"></i> Instagram Support available</a></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .hover-up:hover { transform: translateY(-10px); transition: all 0.4s ease; }
+</style>
+{% endblock %}

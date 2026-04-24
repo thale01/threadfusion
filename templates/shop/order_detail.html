@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Order Details #TF-{{ order.id }} | ThreadFusion{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="mb-5" data-aos="fade-right">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'order_history' %}"
+                        class="text-secondary text-decoration-none small">Order History</a></li>
+                <li class="breadcrumb-item active text-primary small" aria-current="page">Order #TF-{{ order.id }}</li>
+            </ol>
+        </nav>
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <h1 class="display-5 fw-bold mb-1 text-main">Order Details</h1>
+                <p class="text-secondary mb-0">Placed on {{ order.created_at|date:"F d, Y" }} at {{
+                    order.created_at|date:"H:i" }}</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{% url 'invoice' order.id %}"
+                    class="btn btn-accent text-main rounded-pill px-4 shadow-sm border border-white fw-bold">
+                    <i class="fa-solid fa-file-pdf me-2"></i> Download Invoice (PDF)
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Order Breakdown -->
+        <div class="col-lg-8" data-aos="fade-up">
+            <div class="bg-white p-4 p-md-5 rounded-4 shadow-sm border border-accent mb-4">
+                <h4 class="fw-bold mb-4 text-main">Items Ordered</h4>
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr class="text-secondary small fw-bold text-uppercase">
+                                <th class="border-0 pb-3" style="width: 50%;">Product</th>
+                                <th class="border-0 pb-3 text-center">Quantity</th>
+                                <th class="border-0 pb-3 text-end">Price</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in order.items.all %}
+                            <tr class="border-bottom border-accent border-opacity-50">
+                                <td class="py-4">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <img src="{{ item.product.image.url }}"
+                                            class="rounded-3 shadow-sm object-fit-cover"
+                                            style="width: 70px; height: 70px;" alt="{{ item.product.name }}">
+                                        <div>
+                                            <h6 class="fw-bold mb-1">{{ item.product.name }}</h6>
+                                            {% if item.customization_text %}
+                                            <div class="badge bg-accent text-main small fw-normal py-1 px-2 mb-1">
+                                                <i class="fa-solid fa-pen-nib me-1"></i> {{ item.customization_text }}
+                                            </div>
+                                            {% endif %}
+                                            {% if item.customization_image %}
+                                            <div
+                                                class="badge bg-accent text-main small fw-normal py-1 px-2 d-block w-fit">
+                                                <i class="fa-solid fa-image me-1"></i> Reference Image Attached
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-4 text-center fw-bold">{{ item.quantity }}</td>
+                                <td class="py-4 text-end fw-bold text-main">₹{{ item.price }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-5 p-4 rounded-4 bg-accent bg-opacity-20 border border-white">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-secondary">Subtotal</span>
+                        <span class="fw-bold text-main">
+                            {% if order.gift_wrap %}
+                            ₹{{ order.total_price|add:"-99"|add:"-50" }}
+                            {% else %}
+                            ₹{{ order.total_price|add:"-99" }}
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-secondary">Delivery Fee</span>
+                        <span class="fw-bold text-success">{% if order.delivery_charge == 0 %}FREE{% else %}₹{{ order.delivery_charge }}{% endif %}</span>
+                    </div>
+                    {% if order.gift_wrap %}
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-secondary">Gift Packaging</span>
+                        <span class="fw-bold text-main">₹50.00</span>
+                    </div>
+                    {% endif %}
+                    <hr class="border-accent my-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="h5 fw-bold mb-0">Total Paid</span>
+                        <span class="h4 fw-bold text-primary mb-0">₹{{ order.total_price }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customization Gallery -->
+            {% if order.images.exists or order.custom_text %}
+            <div class="bg-white p-4 p-md-5 rounded-4 shadow-sm border border-accent mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="fw-bold mb-0 text-main">Customization Details</h4>
+                    {% if order.images.exists %}
+                    <a href="{% url 'download_all_images' order.id %}" class="btn btn-dark btn-sm rounded-pill px-3">
+                        <i class="fa-solid fa-file-zipper me-1"></i> Download All (ZIP)
+                    </a>
+                    {% endif %}
+                </div>
+
+                {% if order.custom_text %}
+                <div class="mb-4">
+                    <h6 class="text-secondary small fw-bold text-uppercase mb-2">Order Custom Note</h6>
+                    <div class="p-3 bg-light rounded-3 border">
+                        {{ order.custom_text }}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if order.images.exists %}
+                <h6 class="text-secondary small fw-bold text-uppercase mb-3">Custom Images</h6>
+                <div class="row g-3">
+                    {% for img in order.images.all %}
+                    <div class="col-4 col-md-3 col-lg-2">
+                        <div class="position-relative group">
+                            <img src="{{ img.image.url }}" class="img-fluid rounded-3 shadow-sm border" style="aspect-ratio: 1/1; object-fit: cover;" alt="Custom Image">
+                            <a href="{{ img.image.url }}" download class="btn btn-dark btn-sm position-absolute bottom-0 end-0 m-1 opacity-0 group-hover-visible transition-all" style="padding: 2px 6px;">
+                                <i class="fa-solid fa-download" style="font-size: 0.7rem;"></i>
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <div class="alert alert-primary border-0 rounded-4 p-4 d-flex align-items-center gap-3 shadow-sm"
+                data-aos="zoom-in">
+                <i class="fa-brands fa-instagram display-6 p-2 bg-white bg-opacity-25 rounded-circle"></i>
+                <div>
+                    <h6 class="fw-bold mb-1">Order Updates on Instagram</h6>
+                    <p class="small mb-0">Please send a screenshot of this page to <a
+                            href="https://www.instagram.com/_threadfusion_?igsh=cnJnb29nNGNiNzhr"
+                            class="text-white fw-bold text-decoration-none" target="_blank">@ThreadFusion</a> for the
+                        fastest updates and shipping confirmation.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Sidebar Info -->
+        <div class="col-lg-4" data-aos="fade-left">
+            <div class="sticky-top" style="top: 100px;">
+                <div class="bg-white p-4 rounded-4 shadow-sm border border-accent mb-4">
+                    <h5 class="fw-bold mb-3 text-main">Order Status</h5>
+                    <div class="d-flex align-items-center gap-3 mb-4">
+                        <span class="status {% if order.status == 'Pending' %}pending{% elif order.status == 'Processing' %}processing{% elif order.status == 'Shipped' %}shipped{% elif order.status == 'Delivered' %}delivered{% endif %}">
+                            {{ order.status }}
+                            {% if order.status == 'Pending' %}🟡{% elif order.status == 'Processing' %}🔵{% elif order.status == 'Shipped' %}🟣{% elif order.status == 'Delivered' %}🟢{% endif %}
+                        </span>
+                    </div>
+                    <p class="small text-secondary mb-3">
+                        <i class="fa-solid fa-clock me-2"></i>
+                        Estimated Delivery: <strong>7–14 business days</strong>
+                    </p>
+
+                    <div class="mt-4 pt-4 border-top border-accent border-opacity-25">
+                        {% if order.tracking_id and order.status == "Shipped" %}
+                        <a href="https://www.delhivery.com/track/package/{{ order.tracking_id }}"
+                           target="_blank"
+                           class="btn btn-dark w-100 mt-2 track-btn">
+                           Track Order 🚚
+                        </a>
+                        {% else %}
+                        <p class="text-muted text-center mt-2 small">
+                            Tracking will be available soon
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-4 shadow-sm border border-accent">
+                    <h5 class="fw-bold mb-3 text-main">Shipping Address</h5>
+                    <div class="d-flex gap-3">
+                        <div class="bg-accent bg-opacity-50 p-3 rounded-circle" style="height: fit-content;">
+                            <i class="fa-solid fa-location-dot text-primary"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-1">{{ order.full_name }}</h6>
+                            <p class="small text-secondary mb-2">{{ order.address }}</p>
+                            <p class="small text-main mb-0 fw-bold">
+                                <i class="fa-solid fa-phone me-1 small"></i> {{ order.phone_number }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {% if order.is_gift %}
+                <div class="bg-white p-4 rounded-4 shadow-sm border border-accent mt-4">
+                    <h5 class="fw-bold mb-3 text-main">🎁 Gift Message</h5>
+                    <div class="p-3 bg-light rounded-3 border">
+                        <i class="text-secondary">"{{ order.gift_message }}"</i>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .w-fit {
+        width: fit-content;
+    }
+
+    .track-btn {
+        border-radius: 10px;
+        padding: 12px;
+        font-weight: 500;
+        transition: 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        width: 100%;
+    }
+
+    .track-btn:hover {
+        background-color: #000;
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .group:hover .group-hover-visible {
+        opacity: 1 !important;
+    }
+    
+    .transition-all {
+        transition: all 0.3s ease;
+    }
+
+    .status {
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .pending { background: #fff3cd; color: #856404; }
+    .processing { background: #cce5ff; color: #004085; }
+    .shipped { background: #e2d6f3; color: #4b0082; }
+    .delivered { background: #d4edda; color: #155724; }
+
+</style>
+{% endblock %}

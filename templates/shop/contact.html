@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}Contact Us | ThreadFusion{% endblock %}
+
+{% block content %}
+<section class="py-5" style="background-color: var(--bg-main); min-height: 90vh;">
+    <div class="container py-lg-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="bg-white rounded-5 shadow-lg overflow-hidden border border-light">
+                    <div class="row g-0">
+                        <!-- Left Side: Contact Info -->
+                        <div class="col-md-5 bg-primary p-5 d-flex flex-column justify-content-center text-white">
+                            <h2 class="display-6 fw-bold mb-4" style="font-family: 'Playfair Display', serif;">Get in Touch</h2>
+                            <p class="mb-5 opacity-75">We love to hear from our community. Whether you have a question about our crafts or a custom request, we're here to help.</p>
+                            
+                            <div class="d-flex align-items-center gap-4 mb-4">
+                                <div class="bg-white bg-opacity-10 p-3 rounded-circle">
+                                    <i class="fa-solid fa-envelope fs-4 text-accent"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-0">Email Us</h6>
+                                    <p class="mb-0 small opacity-75">hello@threadfusion.com</p>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex align-items-center gap-4 mb-5">
+                                <div class="bg-white bg-opacity-10 p-3 rounded-circle">
+                                    <i class="fa-solid fa-location-dot fs-4 text-accent"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-0">Our Location</h6>
+                                    <p class="mb-0 small opacity-75">Maharashtra, 402107</p>
+                                </div>
+                            </div>
+
+                            <div class="mt-auto">
+                                <h6 class="fw-bold mb-3 small text-uppercase tracking-wider">Follow Our Journey</h6>
+                                <div class="d-flex gap-3">
+                                    <a href="https://www.instagram.com/_threadfusion_?igsh=cnJnb29nNGNiNzhr" class="text-white bg-white bg-opacity-10 p-3 rounded-circle hover-scale" target="_blank">
+                                        <i class="fa-brands fa-instagram fs-5"></i>
+                                    </a>
+                                    <a href="#" class="text-white bg-white bg-opacity-10 p-3 rounded-circle hover-scale">
+                                        <i class="fa-brands fa-pinterest fs-5"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Side: Contact Form -->
+                        <div class="col-md-7 p-5">
+                            <div class="mb-5">
+                                <h3 class="fw-bold text-primary mb-2">Send a Message</h3>
+                                <p class="text-muted small">We usually respond within a few hours. For urgent queries, please contact us on Instagram.</p>
+                            </div>
+
+                            <form action="" method="POST" class="contact-form">
+                                {% csrf_token %}
+                                <div class="row g-4">
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-secondary">Your Name</label>
+                                        <input type="text" name="name" class="form-control" placeholder="Enter Your Name" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-secondary">Email Address</label>
+                                        <input type="email" name="email" class="form-control" placeholder="Enter Your Email" required>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label small fw-bold text-secondary">Message</label>
+                                        <textarea name="message" class="form-control" rows="5" placeholder="How can we help you?" required></textarea>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="bg-light p-3 rounded-4 mb-4 border-0">
+                                            <p class="small text-muted mb-0">
+                                                <i class="fa-solid fa-camera me-2 text-primary"></i> 
+                                                <strong>Note:</strong> For order-related queries, please share your order screenshot via Instagram chat.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill py-3 shadow-lg hover-up">
+                                            Send Message <i class="fa-solid fa-paper-plane ms-2"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+
+                            <div class="text-center mt-5">
+                                <p class="text-muted small mb-3">Prefer instant chat?</p>
+                                <a href="https://www.instagram.com/_threadfusion_?igsh=cnJnb29nNGNiNzhr" class="btn btn-accent rounded-pill px-5 py-3 fw-bold shadow-sm d-inline-flex align-items-center gap-3 hover-scale" target="_blank">
+                                    <i class="fa-brands fa-instagram fs-4"></i> Chat on Instagram
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .tracking-wider { letter-spacing: 0.1em; }
+    .hover-scale:hover { transform: scale(1.1); transition: transform 0.3s ease; }
+    .hover-up:hover { transform: translateY(-5px); transition: transform 0.3s ease; }
+    .contact-form .form-control {
+        background-color: #f8f9fa !important;
+        border: 2px solid transparent !important;
+        transition: all 0.3s ease;
+    }
+    .contact-form .form-control:focus {
+        border-color: var(--secondary) !important;
+        background-color: #fff !important;
+        box-shadow: none !important;
+    }
+</style>
+{% endblock %}

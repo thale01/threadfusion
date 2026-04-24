@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Your Cart | ThreadFusion{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex align-items-center gap-3 mb-5" data-aos="fade-right">
+        <h1 class="display-5 fw-bold mb-0">Shopping Cart</h1>
+        <span class="badge bg-primary bg-opacity-10 text-primary py-2 px-3 rounded-pill">{{ cart.items.all.count }} items</span>
+    </div>
+
+    {% if cart.items.exists %}
+    <div class="row g-4">
+        <!-- Cart Items -->
+        <div class="col-lg-8" data-aos="fade-up">
+            <div class="bg-white p-3 p-lg-4 rounded-4 shadow-sm border border-accent">
+                <!-- Desktop Table View -->
+                <div class="table-responsive d-none d-md-block">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr class="text-secondary border-bottom border-accent">
+                                <th class="pb-3 fw-normal" style="width: 45%;">Product</th>
+                                <th class="pb-3 fw-normal text-center">Quantity</th>
+                                <th class="pb-3 fw-normal text-end">Total</th>
+                                <th class="pb-3" style="width: 50px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody class="border-0">
+                            {% for item in cart.items.all %}
+                                <tr class="border-bottom border-accent border-opacity-50">
+                                    <td class="py-4">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="rounded-3 overflow-hidden shadow-sm" style="width: 90px; height: 90px; flex-shrink: 0;">
+                                                <img src="{{ item.product.image.url }}" class="w-100 h-100 object-fit-cover" alt="{{ item.product.name }}">
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <h6 class="fw-bold mb-1">{{ item.product.name }}</h6>
+                                                <p class="text-secondary small mb-1">₹{{ item.product.price }} each</p>
+                                                <div class="d-flex flex-wrap gap-2 mt-2">
+                                                    {% if item.customization_text %}
+                                                        <span class="badge bg-accent text-main small fw-normal py-1 px-2">
+                                                            <i class="fa-solid fa-pen-nib me-1"></i> {{ item.customization_text }}
+                                                        </span>
+                                                    {% endif %}
+                                                    {% if item.customization_image %}
+                                                        <span class="badge bg-accent text-main small fw-normal py-1 px-2">
+                                                            <i class="fa-solid fa-image me-1"></i> Image Attached
+                                                        </span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-4">
+                                        <div class="d-flex align-items-center justify-content-center gap-3">
+                                            <form action="{% url 'update_cart' item.id %}" method="POST" class="m-0">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="decrease">
+                                                <button type="submit" class="btn btn-sm btn-outline-primary rounded-circle p-0" style="width: 28px; height: 28px;">-</button>
+                                            </form>
+                                            <span class="fw-bold fs-5" style="min-width: 25px; text-align: center;">{{ item.quantity }}</span>
+                                            <form action="{% url 'update_cart' item.id %}" method="POST" class="m-0">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="increase">
+                                                <button type="submit" class="btn btn-sm btn-outline-primary rounded-circle p-0" style="width: 28px; height: 28px;">+</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                    <td class="py-4 text-end fw-bold text-main fs-5">
+                                        ₹{{ item.get_total_price }}
+                                    </td>
+                                    <td class="py-4 text-end">
+                                        <a href="{% url 'remove_from_cart' item.id %}" class="text-danger p-0 d-inline-block hover-scale" title="Remove">
+                                            <i class="fa-solid fa-trash-can shadow-sm"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Mobile List View -->
+                <div class="d-md-none">
+                    {% for item in cart.items.all %}
+                        <div class="border-bottom border-accent py-4 {% if forloop.last %}border-0 pb-0{% endif %}">
+                            <div class="d-flex gap-3 mb-3">
+                                <div class="rounded-3 overflow-hidden shadow-sm" style="width: 100px; height: 100px; flex-shrink: 0;">
+                                    <img src="{{ item.product.image.url }}" class="w-100 h-100 object-fit-cover" alt="{{ item.product.name }}">
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <h6 class="fw-bold mb-1">{{ item.product.name }}</h6>
+                                        <a href="{% url 'remove_from_cart' item.id %}" class="text-danger p-2 m-n2">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </a>
+                                    </div>
+                                    <p class="text-secondary small mb-2">₹{{ item.product.price }} each</p>
+                                    <div class="d-grid gap-2 mb-3">
+                                        {% if item.customization_text %}
+                                            <div class="small bg-accent p-2 rounded text-main border border-white">
+                                                <i class="fa-solid fa-pen-nib me-1"></i> {{ item.customization_text }}
+                                            </div>
+                                        {% endif %}
+                                        {% if item.customization_image %}
+                                            <div class="small bg-accent p-2 rounded text-main border border-white">
+                                                <i class="fa-solid fa-image me-1"></i> Reference Image Attached
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="d-flex align-items-center justify-content-between mt-auto">
+                                        <div class="d-flex align-items-center gap-3 bg-accent bg-opacity-50 p-1 px-2 rounded-pill">
+                                            <form action="{% url 'update_cart' item.id %}" method="POST" class="m-0">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="decrease">
+                                                <button type="submit" class="btn btn-sm btn-link text-main p-0" style="width: 24px; text-decoration: none;">-</button>
+                                            </form>
+                                            <span class="fw-bold small">{{ item.quantity }}</span>
+                                            <form action="{% url 'update_cart' item.id %}" method="POST" class="m-0">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="increase">
+                                                <button type="submit" class="btn btn-sm btn-link text-main p-0" style="width: 24px; text-decoration: none;">+</button>
+                                            </form>
+                                        </div>
+                                        <h6 class="fw-bold text-primary mb-0">₹{{ item.get_total_price }}</h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="col-lg-4" data-aos="fade-left">
+            <div class="bg-white p-4 rounded-4 sticky-top shadow-sm border border-accent" style="top: 100px;">
+                <h4 class="fw-bold mb-4">Order Summary</h4>
+                
+                <div class="bg-accent bg-opacity-20 p-3 rounded-4 mb-4 border border-white">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="fa-solid fa-gift text-primary"></i>
+                        <h6 class="fw-bold mb-0 small">Gift Packaging</h6>
+                    </div>
+                    <p class="text-secondary small mb-0">Premium gift wrap available at checkout for only <span class="text-primary fw-bold">₹50</span>.</p>
+                </div>
+
+                <!-- Coupon System -->
+                <div class="mb-4">
+                    <label class="form-label small fw-bold">Have a coupon?</label>
+                    <form action="{% url 'apply_coupon' %}" method="POST" class="d-flex gap-2">
+                        {% csrf_token %}
+                        <input type="text" name="coupon_code" class="form-control form-control-sm border-accent shadow-sm rounded-pill px-3" placeholder="Enter code" value="{{ cart.coupon.code|default:'' }}">
+                        <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill px-3">Apply</button>
+                    </form>
+                    {% if cart.coupon %}
+                        <div class="mt-2 text-success small d-flex align-items-center gap-1">
+                            <i class="fa-solid fa-circle-check"></i>
+                            Coupon <b>{{ cart.coupon.code }}</b> applied ({{ cart.coupon.discount }}% off)
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="d-flex justify-content-between mb-3 text-secondary">
+                    <span>Product Total</span>
+                    <span class="text-main fw-bold">₹{{ cart.get_subtotal }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-3 text-secondary">
+                    <span>Delivery Charges</span>
+                    <span class="text-success fw-bold small">FREE</span>
+                </div>
+                <hr class="border-accent my-4">
+                <div class="d-flex justify-content-between mb-5 align-items-center">
+                    <span class="h5 fw-bold mb-0">Final Total</span>
+                    <span class="h4 fw-bold text-primary mb-0">₹{{ cart.get_total_price }}</span>
+                </div>
+                <a href="{% url 'checkout' %}" class="btn btn-primary btn-lg w-100 py-3 rounded-pill btn-mobile-full shadow">
+                    Checkout Now <i class="fa-solid fa-arrow-right ms-2"></i>
+                </a>
+                <div class="mt-4 text-center">
+                    <a href="{% url 'product_list' %}" class="text-secondary text-decoration-none small hover-primary">
+                        <i class="fa-solid fa-chevron-left me-2"></i> Continue Shopping
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center py-5 bg-white rounded-5 shadow-sm border border-accent" data-aos="zoom-in">
+        <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex p-5 mb-4 shadow-sm">
+            <i class="fa-solid fa-cart-shopping display-1 text-primary"></i>
+        </div>
+        <h2 class="fw-bold">Your cart is empty</h2>
+        <p class="text-secondary mb-5">Artisan crafts are waiting for you!</p>
+        <a href="{% url 'product_list' %}" class="btn btn-primary btn-lg px-5 rounded-pill shadow">Start Exploring</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

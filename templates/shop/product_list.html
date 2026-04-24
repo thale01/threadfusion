@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block title %}Shop Collection | ThreadFusion{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Header & Filter -->
+    <div class="row align-items-center g-4 mb-5">
+        <div class="col-md-6">
+            <h1 class="display-5 fw-bold mb-0">Our Collection</h1>
+            <p class="text-secondary mb-0">Curated handmade treasures for your home.</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <form action="" method="GET" id="filterForm" class="d-inline-block">
+                <div class="input-group">
+                    <span class="input-group-text glass border-end-0 text-secondary"><i class="fa-solid fa-filter"></i></span>
+                    <select name="category" onchange="this.form.submit()" class="form-select glass border-start-0 ps-0 text-main" style="cursor: pointer; min-width: 200px;">
+                        <option value="" class="text-dark">All Categories</option>
+                        {% for cat in categories %}
+                            <option value="{{ cat.slug }}" class="text-dark" {% if request.GET.category == cat.slug %}selected{% endif %}>{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if search_query %}
+    <div class="alert glass border-primary border-opacity-25 mb-5 d-flex align-items-center">
+        <i class="fa-solid fa-magnifying-glass text-primary me-3"></i>
+        <span>Showing results for: <strong class="text-main">"{{ search_query }}"</strong></span>
+        <a href="{% url 'product_list' %}" class="btn btn-sm btn-link text-primary ms-auto">Clear Search</a>
+    </div>
+    {% endif %}
+
+    <!-- Product Grid -->
+    <div class="product-grid">
+        {% for product in products %}
+            <div class="product-card-container" data-aos="fade-up">
+                <div class="card product-card h-100 rounded-4 shadow-sm border-0 overflow-hidden">
+                    <div class="position-relative">
+                        <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 220px; width: 100%; object-fit: cover;">
+                        {% if product.is_featured %}
+                            <span class="position-absolute top-0 end-0 m-2 badge bg-primary shadow-sm small" style="font-size: 0.7rem;">Featured</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-body p-3 d-flex flex-column">
+                        <div class="mb-1">
+                            <span class="text-primary fw-bold" style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">{{ product.category.name }}</span>
+                        </div>
+                        <h6 class="card-title fw-bold mb-1 text-truncate">{{ product.name }}</h6>
+                        <p class="price-tag mb-3 fw-bold text-main">₹{{ product.price }}</p>
+                        <div class="mt-auto">
+                            <a href="{% url 'product_detail' product.pk %}" class="btn btn-primary w-100 py-2 rounded-pill small fw-bold">
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="grid-empty">
+                <div class="text-center py-5 glass rounded-4 border-dashed">
+                    <i class="fa-regular fa-face-frown display-1 text-secondary mb-4"></i>
+                    <h3 class="fw-bold">No products found</h3>
+                    <p class="text-secondary mb-4">We couldn't find any items matching your criteria.</p>
+                    <a href="{% url 'product_list' %}" class="btn btn-primary px-4 rounded-pill">Clear all filters</a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr); /* 2 products per row on mobile */
+        gap: 15px;
+        margin-bottom: 3rem;
+    }
+
+    .grid-empty {
+        grid-column: 1 / -1;
+    }
+
+    @media (min-width: 768px) {
+        .product-grid {
+            grid-template-columns: repeat(3, 1fr); /* 3 products per row on tablet */
+            gap: 25px;
+        }
+    }
+
+    @media (min-width: 1024px) {
+        .product-grid {
+            grid-template-columns: repeat(4, 1fr); /* 4 products per row on desktop */
+            gap: 30px;
+        }
+    }
+
+    .form-select option {
+        background-color: var(--dark);
+        color: white;
+    }
+
+    .product-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
+    }
+</style>
+{% endblock %}

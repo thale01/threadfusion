@@ -1,0 +1,376 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Handmade with Love | ThreadFusion{% endblock %}
+
+{% block content %}
+<!-- 1. HERO SECTION -->
+<style>
+    .modern-hero {
+        position: relative;
+        height: 75vh;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        background-image: url('{% static "images/floral_pink_hero_bg.png" %}');
+        background-repeat: no-repeat;
+        background-size: cover; /* Immersive full image */
+        background-position: center;
+        padding: 0 5%;
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 2;
+        max-width: 600px;
+        text-align: center; /* Center text */
+        padding: 20px;
+        /* No background or blur as per requested "no heavy effects" */
+    }
+
+    .hero-title {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(3rem, 7vw, 5.5rem);
+        font-weight: 800;
+        color: var(--primary); /* Deep Brand Color */
+        line-height: 1.1;
+        margin-bottom: 0.5rem;
+        animation: fadeIn 1s ease-out;
+    }
+
+    .hero-subtitle {
+        font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+        font-weight: 500;
+        color: var(--text-muted); /* Soft Readable color */
+        margin-bottom: 2.5rem;
+        letter-spacing: 1px;
+        animation: fadeIn 1.2s ease-out;
+    }
+
+    .modern-btn {
+        display: inline-block;
+        padding: 12px 45px;
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: white !important;
+        text-decoration: none;
+        border-radius: 10px; /* Synchronized with global buttons */
+        background-color: var(--primary);
+        border: none;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        animation: fadeIn 1.4s ease-out;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+
+    .modern-btn:hover {
+        transform: scale(1.05); /* Small scale effect */
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08); /* Slight shadow */
+        background-color: #ffffff;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(15px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .modern-hero {
+            height: 70vh;
+            background-position: 70% center; /* Shift image on mobile to show floral elements better */
+        }
+        .hero-title {
+            font-size: 3.2rem;
+        }
+        .hero-subtitle {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+        }
+        .hero-content {
+            background: rgba(255, 255, 255, 0.2); /* Very subtle hint of bg for legibility if needed */
+            backdrop-filter: blur(2px);
+            border-radius: 24px;
+        }
+    }
+</style>
+
+<section class="modern-hero">
+    <div class="hero-content" data-aos="fade-up">
+        <h1 class="hero-title">ThreadFusion</h1>
+        <p class="hero-subtitle">Handmade with love</p>
+        <a href="{% url 'product_list' %}" class="modern-btn">Shop Now</a>
+    </div>
+</section>
+
+
+<script>
+    // Navbar scroll effect
+    window.addEventListener('scroll', function () {
+        const nav = document.querySelector('.navbar');
+        if (window.scrollY > 50) {
+            nav.classList.add('scrolled');
+        } else {
+            nav.classList.remove('scrolled');
+        }
+    });
+</script>
+
+<!-- 2. CATEGORIES SECTION -->
+<section id="categories" class="section-padding">
+    <div class="container text-center mb-5" data-aos="fade-up">
+        <h2 class="fw-bold h1 mb-1">Shop by Category</h2>
+        <p class="text-muted">Find the perfect piece for your style</p>
+    </div>
+    <div class="container">
+        <div class="row g-4 g-lg-5">
+            {% for category in categories %}
+            <div class="col-6 col-md-3" data-aos="zoom-in" data-aos-delay="{{ forloop.counter }}00">
+                <a href="{% url 'product_list' %}?category={{ category.slug }}" class="text-decoration-none group">
+                    <div class="gallery-item shadow-sm">
+                        {% if category.name == 'Pottery' %}
+                        <img src="https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?auto=format&fit=crop&q=80&w=600"
+                            alt="Pottery">
+                        {% elif category.name == 'Textiles' %}
+                        <img src="https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&q=80&w=600"
+                            alt="Textiles">
+                        {% elif category.name == 'Jewelry' %}
+                        <img src="https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&q=80&w=600"
+                            alt="Jewelry">
+                        {% else %}
+                        <img src="https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&q=80&w=600"
+                            alt="{{ category.name }}">
+                        {% endif %}
+                    </div>
+                    <h6 class="text-center category-title">{{ category.name }}</h6>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- 3. FEATURED PRODUCTS -->
+<section class="section-padding bg-white bg-opacity-50">
+    <div class="container d-flex justify-content-between align-items-end mb-5" data-aos="fade-up">
+        <div>
+            <h2 class="fw-bold h1 mb-1">Featured Items</h2>
+            <p class="text-muted mb-0">Our community's favorite picks</p>
+        </div>
+        <a href="{% url 'product_list' %}" class="text-primary fw-bold text-decoration-none">View All <i
+                class="fa-solid fa-arrow-right ms-2"></i></a>
+    </div>
+    <div class="container">
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3 g-lg-4">
+            {% for product in featured_products %}
+            <div class="col" data-aos="fade-up" data-aos-delay="{{ forloop.counter }}00">
+                <div class="card h-100 product-card shadow-sm border-0 position-relative">
+                    {% if product.original_price %}
+                    <div class="position-absolute top-0 start-0 m-2 badge bg-danger rounded-pill shadow-sm z-2">
+                        {{ product.discount_percentage }}% OFF
+                    </div>
+                    {% endif %}
+                    <div class="wishlist-heart">
+                        <i class="fa-regular fa-heart"></i>
+                    </div>
+                    <a href="{% url 'product_detail' product.pk %}" class="text-decoration-none">
+                        <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="aspect-ratio: 1/1; object-fit: cover;">
+                        <div class="card-body p-3 p-lg-4 text-center">
+                            <h6 class="card-title fw-bold text-main mb-2 small-mobile-text">{{ product.name }}</h6>
+                            <div class="d-flex justify-content-center align-items-center gap-2 mb-3">
+                                <span class="text-primary fw-bold h5 mb-0">₹{{ product.price }}</span>
+                                {% if product.original_price %}
+                                <span class="text-muted text-decoration-line-through small">₹{{ product.original_price }}</span>
+                                {% endif %}
+                            </div>
+                            <form action="{% url 'add_to_cart' %}" method="POST" class="m-0">
+                                {% csrf_token %}
+                                <input type="hidden" name="product_id" value="{{ product.id }}">
+                                <input type="hidden" name="quantity" value="1">
+                                <button type="submit"
+                                    class="btn btn-outline-primary w-100 rounded-pill py-2 small fw-bold btn-cart-responsive">Add
+                                    to Cart</button>
+                            </form>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- 4. WHY CHOOSE US -->
+<section class="section-padding">
+    <div class="container">
+        <div class="row g-4 text-center">
+            <div class="col-md-3">
+                <div class="bg-accent bg-opacity-10 rounded-circle d-inline-flex p-4 mb-4">
+                    <i class="fa-solid fa-wand-magic-sparkles text-accent fs-3"></i>
+                </div>
+                <h6 class="fw-bold">Handmade Quality</h6>
+                <p class="text-muted small">Every stitch and stroke made with meticulous care.</p>
+            </div>
+            <div class="col-md-3">
+                <div class="bg-accent bg-opacity-10 rounded-circle d-inline-flex p-4 mb-4">
+                    <i class="fa-solid fa-palette text-accent fs-3"></i>
+                </div>
+                <h6 class="fw-bold">Custom Designs</h6>
+                <p class="text-muted small">Bring your unique ideas to life with our artisans.</p>
+            </div>
+            <div class="col-md-3">
+                <div class="bg-accent bg-opacity-10 rounded-circle d-inline-flex p-4 mb-4">
+                    <i class="fa-solid fa-truck-fast text-accent fs-3"></i>
+                </div>
+                <h6 class="fw-bold">Fast Delivery</h6>
+                <p class="text-muted small">Carefully packaged and sent swiftly to your door.</p>
+            </div>
+            <div class="col-md-3">
+                <div class="bg-accent bg-opacity-10 rounded-circle d-inline-flex p-4 mb-4">
+                    <i class="fa-solid fa-heart-circle-check text-accent fs-3"></i>
+                </div>
+                <h6 class="fw-bold">Trusted by Thousands</h6>
+                <p class="text-muted small">Join our community of happy handmade lovers.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 5. BESTSELLER / TRENDING -->
+<section class="section-padding bg-light-mint bg-opacity-50 overflow-hidden">
+    <div class="container mb-5">
+        <h2 class="fw-bold h1 mb-1">Bestsellers</h2>
+        <p class="text-muted">Top trending items this week</p>
+    </div>
+    <div class="container-fluid px-lg-5">
+        <div class="horizontal-scroll ps-3">
+            {% for product in featured_products %}
+            <div class="col">
+                <div class="card h-100 product-card shadow-sm border-0 bg-white">
+                    <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}"
+                        style="aspect-ratio: 1/1; object-fit: cover;">
+                    <div class="card-body p-3 text-center">
+                        <h6 class="fw-bold text-main mb-1 small">{{ product.name }}</h6>
+                        <p class="text-primary fw-bold mb-0 small">₹{{ product.price }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- 6. CUSTOMIZATION PROMO -->
+<section class="section-padding">
+    <div class="container">
+        <div class="newsletter-section text-center position-relative overflow-hidden"
+            style="background: var(--accent); border-radius: 40px;">
+            <div class="position-absolute top-0 start-0 w-100 h-100 bg-white bg-opacity-10"
+                style="backdrop-filter: blur(5px);"></div>
+            <div class="position-relative z-1 py-5">
+                <h2 class="display-4 fw-bold text-main mb-3">Create Your Own Design 🎨</h2>
+                <p class="text-main fs-5 mb-5 opacity-90 mx-auto" style="max-width: 600px;">Upload your idea and we
+                    will make it real. Your imagination, our craftsmanship.</p>
+                <a href="{% url 'customize' %}" class="btn btn-white btn-lg rounded-pill px-5 py-3 shadow-lg"
+                    style="background: white; color: var(--primary); border: none; font-weight: bold;">Customize Now</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 7. TESTIMONIALS -->
+<section class="section-padding bg-white bg-opacity-50">
+    <div class="container text-center mb-5" data-aos="fade-up">
+        <h2 class="fw-bold h1 mb-1">Loved by Customers</h2>
+        <p class="text-muted">What people say about ThreadFusion</p>
+    </div>
+    <div class="container">
+        <div class="row g-4">
+            {% for t in testimonials %}
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="{{ forloop.counter }}00">
+                <div
+                    class="testimonial-card h-100 p-4 rounded-4 shadow-sm border border-accent border-opacity-20 bg-white bg-opacity-80 backdrop-blur">
+                    <div class="text-accent mb-3">
+                        {% for i in "12345" %}
+                        {% if forloop.counter <= t.rating %} <i class="fa-solid fa-star"></i>
+                            {% else %}
+                            <i class="fa-regular fa-star"></i>
+                            {% endif %}
+                            {% endfor %}
+                    </div>
+                    <p class="text-secondary italic mb-4 small" style="min-height: 60px;">"{{ t.review }}"</p>
+                    <div class="d-flex align-items-center gap-3">
+                        {% if t.image %}
+                        <img src="{{ t.image.url }}" alt="{{ t.name }}" class="rounded-circle shadow-sm"
+                            style="width: 48px; height: 48px; object-fit: cover;">
+                        {% else %}
+                        <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center shadow-sm"
+                            style="width: 48px; height: 48px;">
+                            <i class="fa-solid fa-user text-primary small"></i>
+                        </div>
+                        {% endif %}
+                        <h6 class="fw-bold mb-0 small text-main">{{ t.name }}</h6>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5">
+                <p class="text-muted">No testimonials yet. Be the first to review us!</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- 8. FOLLOW OUR JOURNEY (SOCIAL SECTION) -->
+<section class="section-padding">
+    <div class="container text-center mb-5" data-aos="fade-up">
+        <h2 class="fw-bold h1 mb-1">Follow Our Journey</h2>
+        <p class="text-muted">A look inside our artisan studio @ThreadFusion</p>
+    </div>
+    <div class="container">
+        <div class="post-grid">
+            {% for post in posts %}
+            <div class="post-item shadow-sm" data-aos="zoom-in" data-aos-delay="{{ forloop.counter }}00">
+                {% if post.video_url %}
+                <div class="ratio ratio-1x1">
+                    <iframe src="{{ post.video_url }}" title="{{ post.title }}" frameborder="0"
+                        allowfullscreen></iframe>
+                </div>
+                {% elif post.image %}
+                <img src="{{ post.image.url }}" alt="{{ post.title|default:'Post' }}">
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5">
+                <p class="text-muted">Follow us on Instagram for latest updates!</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- 9. NEWSLETTER -->
+<section class="section-padding bg-soft-pink">
+    <div class="container py-5 text-center">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <h2 class="fw-bold h1 mb-3">Stay in the Loop</h2>
+                <p class="text-muted mb-5">Subscribe to receive first access to new arrivals, artisan stories, and
+                    exclusive community discounts.</p>
+                <form class="d-flex gap-2 justify-content-center flex-column flex-sm-row">
+                    <input type="email" class="form-control rounded-pill px-4 border-white shadow-sm"
+                        style="max-width: 350px;" placeholder="Your email address">
+                    <button type="button" class="btn btn-primary rounded-pill px-5 shadow">Join Now</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

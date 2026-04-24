@@ -1,0 +1,247 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ product.name }} | ThreadFusion{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row g-5">
+        <!-- Product Image -->
+        <div class="col-lg-6" data-aos="fade-right">
+            <div class="position-sticky" style="top: 100px;">
+                <div class="gallery-item mb-3 shadow-lg rounded-5 overflow-hidden">
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="img-fluid w-100 h-auto" style="display: block;">
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Details -->
+        <div class="col-lg-6" data-aos="fade-left">
+            <div class="ps-lg-4">
+                <nav aria-label="breadcrumb" class="mb-4">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'home' %}" class="text-secondary text-decoration-none small">Home</a></li>
+                        <li class="breadcrumb-item active text-primary small" aria-current="page">{{ product.category.name }}</li>
+                    </ol>
+                </nav>
+
+                <h1 class="display-4 fw-bold mb-3 text-main">{{ product.name }}</h1>
+                
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <div class="d-flex align-items-baseline gap-2">
+                        <span class="text-primary fw-bold h2 mb-0">₹{{ product.price }}</span>
+                        {% if product.original_price %}
+                            <span class="text-muted text-decoration-line-through h5 mb-0">₹{{ product.original_price }}</span>
+                            <span class="badge bg-danger rounded-pill px-3 py-2 small ms-2">{{ product.discount_percentage }}% OFF</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center gap-2 mb-4">
+                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-2 rounded-pill small">
+                        <i class="fa-solid fa-truck-fast me-1"></i> Delivery in 7–14 days
+                    </span>
+                    <a href="{% url 'toggle_wishlist' product.id %}" class="btn {% if in_wishlist %}btn-danger{% else %}btn-outline-danger{% endif %} rounded-circle px-3 py-2 shadow-sm">
+                        <i class="fa-{% if in_wishlist %}solid{% else %}regular{% endif %} fa-heart"></i>
+                    </a>
+                </div>
+
+                <p class="lead text-secondary mb-5" style="line-height: 1.8;">{{ product.description }}</p>
+
+                <div class="bg-accent bg-opacity-30 p-4 rounded-4 mb-5 border border-white shadow-sm">
+                    <form action="{% url 'add_to_cart' %}" method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <input type="hidden" name="product_id" value="{{ product.id }}">
+                        
+                        {% if product.enable_customization %}
+                            <div class="mb-4 border-bottom border-white pb-4">
+                                <label class="form-label d-block mb-3 fw-bold">
+                                    <i class="fa-solid fa-wand-magic-sparkles text-primary me-2"></i> 
+                                    {{ product.customization_label|default:"Customize Your Artisan Piece" }}
+                                </label>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label small text-secondary">Your Name <span class="text-danger">*</span></label>
+                                    <input type="text" name="customer_name" required placeholder="Enter your full name" class="form-control border-accent py-3 px-4 shadow-sm rounded-3">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label small text-secondary">Custom Message/Text (Optional)</label>
+                                    <input type="text" name="custom_text" placeholder="Enter names, dates, or messages..." class="form-control border-accent py-3 px-4 shadow-sm rounded-3">
+                                    <p class="text-secondary small mt-2">
+                                        <i class="fa-solid fa-circle-info me-1"></i> e.g.: "Add 'S & K' initials"
+                                    </p>
+                                </div>
+                                
+                                <div class="mb-0">
+                                    <label class="form-label small text-secondary fw-bold">Upload Custom Images (Unlimited)</label>
+                                    <input type="file" name="custom_images" multiple accept="image/*" class="form-control border-accent py-2 shadow-sm rounded-3" style="background:#fff;">
+                                    <p class="text-muted small mt-2 mb-0">
+                                        <i class="fa-solid fa-cloud-arrow-up me-1"></i> You can upload multiple high-quality images (JPG, PNG, WEBP).
+                                    </p>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <!-- Gift Option -->
+                        <div class="mb-4 border-bottom border-white pb-4">
+                            <label class="form-label d-flex align-items-center gap-2 fw-bold cursor-pointer" for="is_gift">
+                                <input type="checkbox" name="is_gift" id="is_gift" class="form-check-input" onchange="document.getElementById('gift_message_box').classList.toggle('d-none')">
+                                <span>🎁 This is a gift</span>
+                            </label>
+                            <div id="gift_message_box" class="mt-3 d-none">
+                                <label class="form-label small text-secondary">Gift Message</label>
+                                <textarea name="gift_message" class="form-control border-accent shadow-sm rounded-3" rows="3" placeholder="Write your heartfelt message here..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary btn-lg w-100 py-3 rounded-pill shadow" {% if product.stock <= 0 %}disabled{% endif %}>
+                                    {% if product.stock > 0 %}
+                                        <i class="fa-solid fa-bag-shopping me-2"></i> Add to Cart
+                                    {% else %}
+                                        Out of Stock
+                                    {% endif %}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="alert alert-info border-0 rounded-4 p-4 mb-5" style="background-color: #e3f2fd; color: #0d47a1;">
+                    <div class="d-flex gap-3">
+                        <i class="fa-brands fa-instagram fs-3 mt-1"></i>
+                        <div>
+                            <h6 class="fw-bold mb-1">Instagram Confirmation</h6>
+                            <p class="small mb-0 opacity-75">After placing your order, please send a screenshot via DM to <a href="https://www.instagram.com/_threadfusion_?igsh=cnJnb29nNGNiNzhr" class="fw-bold text-decoration-none" style="color: inherit;" target="_blank">@ThreadFusion</a> for faster processing.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-5">
+                    <div class="col-6 col-md-4">
+                        <div class="d-flex align-items-center gap-2 text-secondary small">
+                            <i class="fa-solid fa-leaf text-primary"></i>
+                            <span>Artisan Made</span>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <div class="d-flex align-items-center gap-2 text-secondary small">
+                            <i class="fa-solid fa-shield-heart text-primary"></i>
+                            <span>Secure Checkout</span>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="d-flex align-items-center gap-2 text-secondary small">
+                            <i class="fa-solid fa-gift text-primary"></i>
+                            <span>Gift Wrapping Available</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reviews Section -->
+    <div class="mt-5 pt-5 border-top" id="reviews-section">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="fw-bold m-0">Customer Reviews</h3>
+                    <div class="text-warning">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= avg_rating %}
+                                <i class="fa-solid fa-star"></i>
+                            {% else %}
+                                <i class="fa-regular fa-star"></i>
+                            {% endif %}
+                        {% endfor %}
+                        <span class="text-secondary ms-2 small">({{ reviews.count }} reviews)</span>
+                    </div>
+                </div>
+
+                {% if user.is_authenticated %}
+                <div class="card border-0 shadow-sm rounded-4 mb-5 bg-light">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-3">Share your experience</h5>
+                        <form action="{% url 'add_review' product.id %}" method="POST">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label class="form-label small">Rating</label>
+                                <select name="rating" class="form-select border-0 shadow-sm" required>
+                                    <option value="5">⭐⭐⭐⭐⭐ (Excellent)</option>
+                                    <option value="4">⭐⭐⭐⭐ (Great)</option>
+                                    <option value="3">⭐⭐⭐ (Average)</option>
+                                    <option value="2">⭐⭐ (Poor)</option>
+                                    <option value="1">⭐ (Terrible)</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small">Your Comment</label>
+                                <textarea name="comment" class="form-control border-0 shadow-sm" rows="3" required placeholder="What did you like or dislike?"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary rounded-pill px-4">Post Review</button>
+                        </form>
+                    </div>
+                </div>
+                {% else %}
+                <div class="alert alert-light border rounded-4 text-center py-4 mb-5">
+                    <p class="mb-2">Please log in to share your review.</p>
+                    <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-outline-primary btn-sm rounded-pill px-4">Login</a>
+                </div>
+                {% endif %}
+
+                <div class="reviews-list">
+                    {% for review in reviews %}
+                        <div class="review-item mb-4 pb-4 border-bottom">
+                            <div class="d-flex justify-content-between mb-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 12px;">
+                                        {{ review.user.username|slice:":1"|upper }}
+                                    </div>
+                                    <span class="fw-bold">{{ review.user.username }}</span>
+                                    {% if verified_purchase %}
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill x-small" style="font-size: 10px;">
+                                        <i class="fa-solid fa-check-circle me-1"></i> Verified Purchase
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                <span class="text-muted small">{{ review.created_at|date:"M d, Y" }}</span>
+                            </div>
+                            <div class="text-warning mb-2" style="font-size: 12px;">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= review.rating %}
+                                        <i class="fa-solid fa-star"></i>
+                                    {% else %}
+                                        <i class="fa-regular fa-star"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <p class="text-secondary mb-0">{{ review.comment }}</p>
+                        </div>
+                    {% empty %}
+                        <div class="text-center py-5 text-muted">
+                            <i class="fa-regular fa-comment-dots display-4 mb-3 d-block"></i>
+                            <p>No reviews yet. Be the first to share your thoughts!</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm rounded-4 position-sticky" style="top: 100px;">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-3">Review Policy</h5>
+                        <ul class="small text-secondary ps-3 mb-0">
+                            <li class="mb-2">Your feedback helps fellow artisans and customers.</li>
+                            <li class="mb-2">We value honest and constructive reviews.</li>
+                            <li>Only one review per product is allowed.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
