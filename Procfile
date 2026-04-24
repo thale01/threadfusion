@@ -1,1 +1,1 @@
-web: gunicorn threadfusion.wsgi
+web: gunicorn threadfusion.wsgi:application
