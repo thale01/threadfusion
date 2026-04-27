@@ -1,1 +1,1 @@
-web: gunicorn threadfusion.wsgi:application
+web: python manage.py migrate && gunicorn threadfusion.wsgi
