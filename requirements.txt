@@ -1,8 +1,4 @@
 Django==5.0.4
-dj-database-url
-gunicorn
-psycopg2-binary
-whitenoise
 Pillow
 python-dotenv
 reportlab
