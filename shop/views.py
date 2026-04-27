@@ -16,10 +16,8 @@ import io
 import zipfile
 import os
 
-from .models import Category, Product, Cart, CartItem, Order, OrderItem, Address, SocialPost, Testimonial, Review, Wishlist, Coupon
-
 def home(request):
-    featured_products = Product.objects.filter(available=True)[:8]
+    featured_products = Product.objects.filter(available=True).order_by('-is_featured', '-created')[:8]
     categories = Category.objects.all()
     posts = SocialPost.objects.all().order_by('-created_at')[:8]
     testimonials = Testimonial.objects.all().order_by('-created_at')[:6]

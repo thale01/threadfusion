@@ -17,16 +17,26 @@ class Product(models.Model):
     description = models.TextField()
     original_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Set if there is a discount")
     price = models.DecimalField(max_digits=10, decimal_places=2, help_text="Current selling price")
-    image = models.ImageField(upload_to='products/')
+    image = models.ImageField(upload_to='products/', blank=True, null=True)
+    external_image_url = models.URLField(blank=True, null=True, help_text="Alternative to uploaded image (Google Drive/Image link)")
     stock = models.IntegerField(default=0)
     customization_label = models.CharField(max_length=100, blank=True, help_text="Label for customization field (e.g. 'Enter name')")
     enable_customization = models.BooleanField(default=False)
     available = models.BooleanField(default=True)
+    is_featured = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
+
+    @property
+    def get_image_url(self):
+        if self.external_image_url:
+            return self.external_image_url
+        if self.image:
+            return self.image.url
+        return "/static/images/placeholder.png" # Fallback if no image
 
     @property
     def discount_percentage(self):

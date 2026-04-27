@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Product, Address, Cart, CartItem, Order, OrderItem, SocialPost, CustomImage, Review, Wishlist, Coupon
+from .models import Category, Product, Address, Cart, CartItem, Order, OrderItem, SocialPost, CustomImage, Review, Wishlist, Coupon, Testimonial
 from django.utils.html import format_html
 
 @admin.register(Category)
@@ -9,10 +9,10 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ['name', 'category', 'price', 'original_price', 'stock', 'enable_customization', 'available']
-    list_filter = ['available', 'created', 'updated', 'category', 'enable_customization']
-    list_editable = ['price', 'original_price', 'stock', 'available', 'enable_customization']
-    search_fields = ['name', 'description']
+    list_display = ['name', 'category', 'price', 'original_price', 'stock', 'enable_customization', 'is_featured', 'available']
+    list_filter = ['available', 'is_featured', 'created', 'updated', 'category', 'enable_customization']
+    list_editable = ['price', 'original_price', 'stock', 'available', 'enable_customization', 'is_featured']
+    search_fields = ['name', 'description', 'external_image_url']
 
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
@@ -55,8 +55,6 @@ class OrderAdmin(admin.ModelAdmin):
 class SocialPostAdmin(admin.ModelAdmin):
     list_display = ['title', 'created_at']
     list_filter = ['created_at']
-
-from .models import Category, Product, Address, Cart, CartItem, Order, OrderItem, SocialPost, Testimonial
 
 @admin.register(Testimonial)
 class TestimonialAdmin(admin.ModelAdmin):
