@@ -85,7 +85,7 @@ WSGI_APPLICATION = 'threadfusion.wsgi.application'
 
 if RENDER_EXTERNAL_HOSTNAME:
     DATABASES = {
-        'default': dj_database_url.parse('postgresql://postgres:Siddhithale01%40@db.zwumacxkvutbmmkatcyy.supabase.co:6543/postgres?sslmode=require')
+        'default': dj_database_url.parse('postgresql://postgres.zwumacxkvutbmmkatcyy:Siddhithale01%40@aws-1-ap-south-1.pooler.supabase.com:5432/postgres?sslmode=require')
     }
 else:
     DATABASES = {
