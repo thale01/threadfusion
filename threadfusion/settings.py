@@ -26,15 +26,29 @@ SECRET_KEY = 'django-insecure-default-key-for-dev'
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['threadfusion-qs75.onrender.com', 'localhost', '127.0.0.1']
+# ALLOWED_HOSTS configuration
+ALLOWED_HOSTS = [
+    '.onrender.com', 
+    'threadfusion.com', 
+    'www.threadfusion.com', 
+    'localhost', 
+    '127.0.0.1'
+]
+
+# CSRF Trusted Origins
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.onrender.com',
+    'https://threadfusion.com',
+    'https://www.threadfusion.com',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000'
+]
 
 # Dynamic Render Hostname
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
-    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
-    CSRF_TRUSTED_ORIGINS = [f'https://{RENDER_EXTERNAL_HOSTNAME}', 'https://threadfusion-qs75.onrender.com']
-else:
-    CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000']
+    if f'https://{RENDER_EXTERNAL_HOSTNAME}' not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(f'https://{RENDER_EXTERNAL_HOSTNAME}')
 
 
 # Application definition

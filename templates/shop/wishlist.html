@@ -16,7 +16,7 @@
         <div class="col-6 col-md-4 col-lg-3" data-aos="fade-up">
             <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden hover-lift transition-all">
                 <div class="position-relative">
-                    <img src="{{ item.product.image.url }}" class="card-img-top" style="aspect-ratio: 1/1; object-fit: cover;" alt="{{ item.product.name }}">
+                    <img src="{{ item.product.get_image_url }}" class="card-img-top" style="aspect-ratio: 1/1; object-fit: cover;" alt="{{ item.product.name }}">
                     <a href="{% url 'toggle_wishlist' item.product.id %}" class="btn btn-white btn-sm rounded-circle position-absolute top-0 end-0 m-2 shadow-sm text-danger">
                         <i class="fa-solid fa-heart"></i>
                     </a>

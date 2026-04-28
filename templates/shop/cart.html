@@ -32,11 +32,11 @@
                                     <td class="py-4">
                                         <div class="d-flex align-items-center gap-3">
                                             <div class="rounded-3 overflow-hidden shadow-sm" style="width: 90px; height: 90px; flex-shrink: 0;">
-                                                <img src="{{ item.product.image.url }}" class="w-100 h-100 object-fit-cover" alt="{{ item.product.name }}">
+                                                <img src="{{ item.product.get_image_url }}" class="w-100 h-100 object-fit-cover" alt="{{ item.product.name }}">
                                             </div>
                                             <div class="flex-grow-1">
-                                                <h6 class="fw-bold mb-1">{{ item.product.name }}</h6>
-                                                <p class="text-secondary small mb-1">₹{{ item.product.price }} each</p>
+                                                <h6 class="fw-bold mb-1">{{ item.product.name }}{% if item.product_size %} ({{ item.product_size }}){% endif %}</h6>
+                                                <p class="text-secondary small mb-1">₹{% if item.price_override %}{{ item.price_override }}{% else %}{{ item.product.price }}{% endif %} each</p>
                                                 <div class="d-flex flex-wrap gap-2 mt-2">
                                                     {% if item.customization_text %}
                                                         <span class="badge bg-accent text-main small fw-normal py-1 px-2">
@@ -87,16 +87,16 @@
                         <div class="border-bottom border-accent py-4 {% if forloop.last %}border-0 pb-0{% endif %}">
                             <div class="d-flex gap-3 mb-3">
                                 <div class="rounded-3 overflow-hidden shadow-sm" style="width: 100px; height: 100px; flex-shrink: 0;">
-                                    <img src="{{ item.product.image.url }}" class="w-100 h-100 object-fit-cover" alt="{{ item.product.name }}">
+                                    <img src="{{ item.product.get_image_url }}" class="w-100 h-100 object-fit-cover" alt="{{ item.product.name }}">
                                 </div>
                                 <div class="flex-grow-1">
                                     <div class="d-flex justify-content-between align-items-start">
-                                        <h6 class="fw-bold mb-1">{{ item.product.name }}</h6>
+                                        <h6 class="fw-bold mb-1">{{ item.product.name }}{% if item.product_size %} ({{ item.product_size }}){% endif %}</h6>
                                         <a href="{% url 'remove_from_cart' item.id %}" class="text-danger p-2 m-n2">
                                             <i class="fa-solid fa-trash-can"></i>
                                         </a>
                                     </div>
-                                    <p class="text-secondary small mb-2">₹{{ item.product.price }} each</p>
+                                    <p class="text-secondary small mb-2">₹{% if item.price_override %}{{ item.price_override }}{% else %}{{ item.product.price }}{% endif %} each</p>
                                     <div class="d-grid gap-2 mb-3">
                                         {% if item.customization_text %}
                                             <div class="small bg-accent p-2 rounded text-main border border-white">

@@ -163,9 +163,24 @@ def add_to_cart(request):
         except (ValueError, TypeError):
             quantity = 1
             
+        size_id = request.POST.get('size_id')
+        size_str = None
+        price_override = None
+
+        if size_id:
+            from .models import ProductSize
+            try:
+                ps = ProductSize.objects.get(id=size_id, product=product)
+                size_str = ps.size
+                price_override = ps.price
+            except ProductSize.DoesNotExist:
+                pass
+            
         cart_item = CartItem.objects.create(
             cart=cart, 
             product=product,
+            product_size=size_str,
+            price_override=price_override,
             quantity=quantity,
             customization_text=customization,
             customer_name=customer_name
@@ -242,7 +257,8 @@ def checkout(request):
             OrderItem.objects.create(
                 order=order,
                 product=item.product,
-                price=item.product.price,
+                product_size=item.product_size,
+                price=item.price_override if item.price_override is not None else item.product.price,
                 quantity=item.quantity,
                 customization_text=item.customization_text,
                 customization_image=item.customization_image
@@ -363,6 +379,8 @@ def generate_invoice(request, order_id):
         table_data = [['Product Details', 'Price', 'Qty', 'Total']]
         for item in order.items.all():
             product_desc = f"<b>{item.product.name}</b>"
+            if item.product_size:
+                product_desc += f" ({item.product_size})"
             if item.customization_text:
                 product_desc += f"<br/><font size='8' color='{mauve}'>Note: {item.customization_text}</font>"
             

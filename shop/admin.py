@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Product, Address, Cart, CartItem, Order, OrderItem, SocialPost, CustomImage, Review, Wishlist, Coupon, Testimonial
+from .models import Category, Product, ProductSize, Address, Cart, CartItem, Order, OrderItem, SocialPost, CustomImage, Review, Wishlist, Coupon, Testimonial
 from django.utils.html import format_html
 
 @admin.register(Category)
@@ -7,12 +7,17 @@ class CategoryAdmin(admin.ModelAdmin):
     list_display = ['name', 'slug']
     prepopulated_fields = {'slug': ('name',)}
 
+class ProductSizeInline(admin.TabularInline):
+    model = ProductSize
+    extra = 1
+
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ['name', 'category', 'price', 'original_price', 'stock', 'enable_customization', 'is_featured', 'available']
     list_filter = ['available', 'is_featured', 'created', 'updated', 'category', 'enable_customization']
     list_editable = ['price', 'original_price', 'stock', 'available', 'enable_customization', 'is_featured']
     search_fields = ['name', 'description', 'external_image_url']
+    inlines = [ProductSizeInline]
 
 class OrderItemInline(admin.TabularInline):
     model = OrderItem

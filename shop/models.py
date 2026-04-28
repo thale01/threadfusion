@@ -45,6 +45,14 @@ class Product(models.Model):
             return int(discount)
         return 0
 
+class ProductSize(models.Model):
+    product = models.ForeignKey(Product, related_name='sizes', on_delete=models.CASCADE)
+    size = models.CharField(max_length=50)
+    price = models.IntegerField()
+
+    def __str__(self):
+        return f"{self.product.name} - {self.size}"
+
 class Address(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='addresses')
     full_name = models.CharField(max_length=100)
@@ -87,13 +95,16 @@ class Cart(models.Model):
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, related_name='items', on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product_size = models.CharField(max_length=50, blank=True, null=True)
+    price_override = models.IntegerField(null=True, blank=True)
     quantity = models.PositiveIntegerField(default=1)
     customization_text = models.CharField(max_length=255, blank=True, null=True)
     customer_name = models.CharField(max_length=100, blank=True, null=True)
     customization_image = models.ImageField(upload_to='customizations/', blank=True, null=True)
 
     def get_total_price(self):
-        return self.product.price * self.quantity
+        base_price = self.price_override if self.price_override is not None else self.product.price
+        return base_price * self.quantity
 
 class Order(models.Model):
     STATUS_CHOICES = (
@@ -131,13 +142,15 @@ class CustomImage(models.Model):
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product_size = models.CharField(max_length=50, blank=True, null=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.PositiveIntegerField(default=1)
     customization_text = models.CharField(max_length=255, blank=True, null=True)
     customization_image = models.ImageField(upload_to='order_customizations/', blank=True, null=True)
 
     def __str__(self):
-        return f"{self.quantity} x {self.product.name}"
+        size_str = f" ({self.product_size})" if self.product_size else ""
+        return f"{self.quantity} x {self.product.name}{size_str}"
 
 class SocialPost(models.Model):
     title = models.CharField(max_length=200, blank=True)

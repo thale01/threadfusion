@@ -29,7 +29,7 @@
                 
                 <div class="d-flex align-items-center gap-3 mb-4">
                     <div class="d-flex align-items-baseline gap-2">
-                        <span class="text-primary fw-bold h2 mb-0">₹{{ product.price }}</span>
+                        <span class="text-primary fw-bold h2 mb-0" id="dynamic-price">₹{{ product.price }}</span>
                         {% if product.original_price %}
                             <span class="text-muted text-decoration-line-through h5 mb-0">₹{{ product.original_price }}</span>
                             <span class="badge bg-danger rounded-pill px-3 py-2 small ms-2">{{ product.discount_percentage }}% OFF</span>
@@ -52,6 +52,20 @@
                     <form action="{% url 'add_to_cart' %}" method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
                         <input type="hidden" name="product_id" value="{{ product.id }}">
+                        
+                        {% if product.sizes.all %}
+                            <div class="mb-4 border-bottom border-white pb-4">
+                                <label class="form-label d-block mb-3 fw-bold">
+                                    <i class="fa-solid fa-ruler-combined text-primary me-2"></i> Select Size <span class="text-danger">*</span>
+                                </label>
+                                <div class="d-flex flex-wrap gap-2" id="size-selector">
+                                    {% for size in product.sizes.all %}
+                                        <input type="radio" class="btn-check" name="size_id" id="size_{{ size.id }}" value="{{ size.id }}" data-price="{{ size.price }}" required {% if forloop.first %}checked{% endif %}>
+                                        <label class="btn btn-outline-primary rounded-pill px-4" for="size_{{ size.id }}">{{ size.size }}</label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
                         
                         {% if product.enable_customization %}
                             <div class="mb-4 border-bottom border-white pb-4">
@@ -244,4 +258,37 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const sizeInputs = document.querySelectorAll('input[name="size_id"]');
+        const priceDisplay = document.getElementById('dynamic-price');
+        
+        // If there are sizes and one is selected by default, update price
+        const checkedInput = document.querySelector('input[name="size_id"]:checked');
+        if(checkedInput) {
+            priceDisplay.textContent = '₹' + checkedInput.getAttribute('data-price');
+        }
+
+        sizeInputs.forEach(input => {
+            input.addEventListener('change', function () {
+                if (this.checked) {
+                    priceDisplay.textContent = '₹' + this.getAttribute('data-price');
+                }
+            });
+        });
+        
+        // Form Validation for size
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function(e) {
+            if (sizeInputs.length > 0) {
+                const isSelected = document.querySelector('input[name="size_id"]:checked');
+                if (!isSelected) {
+                    e.preventDefault();
+                    alert("Please select size");
+                }
+            }
+        });
+    });
+</script>
 {% endblock %}
