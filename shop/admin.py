@@ -13,14 +13,14 @@ class ProductSizeInline(admin.TabularInline):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ['name', 'category', 'price', 'original_price', 'stock', 'enable_size_selection', 'enable_name_pricing', 'enable_photo_upload', 'enable_custom_message', 'is_featured', 'available']
+    list_display = ['name', 'category', 'price', 'original_price', 'enable_size_selection', 'enable_name_pricing', 'enable_photo_upload', 'enable_custom_message', 'is_featured', 'available']
     list_filter = ['available', 'is_featured', 'created', 'updated', 'category', 'enable_size_selection', 'enable_name_pricing', 'enable_photo_upload', 'enable_custom_message']
-    list_editable = ['price', 'original_price', 'stock', 'available', 'is_featured']
+    list_editable = ['price', 'original_price', 'available', 'is_featured']
     search_fields = ['name', 'description', 'external_image_url']
     inlines = [ProductSizeInline]
     fieldsets = (
         ('General Info', {
-            'fields': ('category', 'name', 'description', 'price', 'original_price', 'image', 'external_image_url', 'stock', 'available', 'is_featured')
+            'fields': ('category', 'name', 'description', 'price', 'original_price', 'image', 'external_image_url', 'available', 'is_featured')
         }),
         ('Customization Switches', {
             'fields': ('enable_customization', 'customization_label', 'enable_size_selection', 'enable_name_pricing', 'enable_photo_upload', 'enable_custom_message')

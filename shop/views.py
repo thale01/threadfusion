@@ -304,9 +304,6 @@ def checkout(request):
                 c_img.save()
                 image_count += 1
 
-            item.product.stock -= item.quantity
-            item.product.save()
-            
         cart.items.all().delete()
         messages.success(request, "✔ Order placed successfully!")
         messages.info(request, "📸 Please send payment screenshot via WhatsApp for confirmation.")

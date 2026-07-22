@@ -19,7 +19,6 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2, help_text="Current selling price")
     image = models.ImageField(upload_to='products/', blank=True, null=True)
     external_image_url = models.URLField(blank=True, null=True, help_text="Alternative to uploaded image (Google Drive/Image link)")
-    stock = models.IntegerField(default=0)
     customization_label = models.CharField(max_length=100, blank=True, help_text="Label for customization field (e.g. 'Enter name')")
     enable_customization = models.BooleanField(default=False)
     enable_size_selection = models.BooleanField(default=False)

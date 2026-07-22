@@ -27,7 +27,6 @@ def setup():
             name='Ocean Mist Vase',
             description='A beautiful hand-thrown ceramic vase with a unique turquoise mist glaze. Perfect for dried flowers or as a standalone art piece.',
             price=45.00,
-            stock=10,
             customization_label='Engraving (Optional)'
         )
         # Use the generated image if it exists
