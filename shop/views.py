@@ -3,8 +3,8 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Category, Product, Cart, CartItem, Order, OrderItem, Address, SocialPost, Review, Wishlist, Coupon, CustomImage, Testimonial
-from django.db.models import Q, Avg
+from .models import Category, Product, Cart, CartItem, Order, OrderItem, Address, SocialPost, Review, Wishlist, Coupon, CustomImage, Testimonial, BusinessSettings
+from django.db.models import Q, Avg, Sum, Count
 from django.http import HttpResponse
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
@@ -85,12 +85,15 @@ def product_detail(request, pk):
     if request.user.is_authenticated:
         verified_purchase = OrderItem.objects.filter(order__user=request.user, product=product, order__status='Delivered').exists()
 
+    settings_obj = BusinessSettings.objects.first()
+
     return render(request, 'shop/product_detail.html', {
         'product': product,
         'reviews': reviews,
         'avg_rating': avg_rating,
         'in_wishlist': in_wishlist,
-        'verified_purchase': verified_purchase
+        'verified_purchase': verified_purchase,
+        'settings': settings_obj
     })
 
 def signup_view(request):
@@ -197,6 +200,10 @@ def add_to_cart(request):
             # Set price override to selected size price even if name pricing is disabled
             price_override = int(base_price)
             
+        frame_color = request.POST.get('frame_color')
+        thread_color = request.POST.get('thread_color')
+        led_option = request.POST.get('led_option') == 'on'
+
         cart_item = CartItem.objects.create(
             cart=cart, 
             product=product,
@@ -207,7 +214,10 @@ def add_to_cart(request):
             customer_name=customer_name,
             custom_name=custom_name,
             letter_count=letter_count,
-            extra_letter_charges=extra_letter_charges
+            extra_letter_charges=extra_letter_charges,
+            frame_color=frame_color,
+            thread_color=thread_color,
+            led_option=led_option
         )
         
         # Save multiple images to CustomImage linked to CartItem
@@ -288,7 +298,10 @@ def checkout(request):
                 customization_image=item.customization_image,
                 custom_name=item.custom_name,
                 letter_count=item.letter_count,
-                extra_letter_charges=item.extra_letter_charges
+                extra_letter_charges=item.extra_letter_charges,
+                frame_color=item.frame_color,
+                thread_color=item.thread_color,
+                led_option=item.led_option
             )
             
             # Move and rename CustomImages from CartItem to Order
@@ -538,11 +551,388 @@ def add_review(request, product_id):
         rating = request.POST.get('rating')
         comment = request.POST.get('comment')
         
-        # Check if user already reviewed
-        Review.objects.update_or_create(
-            user=request.user,
-            product=product,
-            defaults={'rating': rating, 'comment': comment}
-        )
         messages.success(request, "Thank you for your review!")
     return redirect('product_detail', pk=product_id)
+
+# ----------------- CUSTOM ADMIN DASHBOARD VIEWS -----------------
+
+def admin_required(view_func):
+    def _wrapped_view_func(request, *args, **kwargs):
+        if request.user.is_authenticated and (request.user.is_staff or request.user.is_superuser):
+            return view_func(request, *args, **kwargs)
+        messages.error(request, "Access denied. Admin privileges required.")
+        return redirect('admin_login')
+    return _wrapped_view_func
+
+def admin_login(request):
+    if request.user.is_authenticated and (request.user.is_staff or request.user.is_superuser):
+        return redirect('admin_home')
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            if user.is_staff or user.is_superuser:
+                login(request, user)
+                return redirect('admin_home')
+            else:
+                messages.error(request, "Access denied. Only admins can access this dashboard.")
+        else:
+            messages.error(request, "Invalid username or password.")
+    else:
+        form = AuthenticationForm()
+    return render(request, 'admin_dashboard/login.html', {'form': form})
+
+def admin_logout(request):
+    logout(request)
+    return redirect('admin_login')
+
+@admin_required
+def admin_home(request):
+    from django.utils import timezone
+    from datetime import timedelta
+    
+    today = timezone.now().date()
+    start_of_month = today.replace(day=1)
+    
+    # Today's Orders & Revenue
+    today_orders_qs = Order.objects.filter(created_at__date=today)
+    today_orders_count = today_orders_qs.count()
+    today_revenue = today_orders_qs.exclude(status='Cancelled').aggregate(Sum('total_price'))['total_price__sum'] or 0
+
+    # Monthly Revenue
+    monthly_revenue = Order.objects.filter(created_at__date__gte=start_of_month).exclude(status='Cancelled').aggregate(Sum('total_price'))['total_price__sum'] or 0
+
+    # Order status counters
+    pending_orders = Order.objects.filter(status='Pending').count()
+    processing_orders = Order.objects.filter(status='Processing').count()
+    ready_make_orders = Order.objects.filter(status='Ready to Make').count()
+    ready_pack_orders = Order.objects.filter(status='Ready to Pack').count()
+    shipped_orders = Order.objects.filter(status='Shipped').count()
+    delivered_orders = Order.objects.filter(status='Delivered').count()
+    cancelled_orders = Order.objects.filter(status='Cancelled').count()
+
+    # Customer & Product counters
+    total_customers = User.objects.filter(is_staff=False).count()
+    total_products = Product.objects.count()
+
+    # Recent Orders & Payments
+    recent_orders = Order.objects.all().order_by('-created_at')[:8]
+    recent_payments = Order.objects.exclude(status='Cancelled').order_by('-created_at')[:8]
+
+    # Top Selling Products (ordered by sum of quantity)
+    top_selling = OrderItem.objects.values('product__name', 'product__image').annotate(total_qty=Sum('quantity')).order_by('-total_qty')[:5]
+
+    # Low Performing Products
+    low_performing = Product.objects.annotate(total_sold=Sum('orderitem__quantity')).order_by('total_sold')[:5]
+
+    # Graph Data: Last 7 days orders & revenue
+    graph_labels = []
+    graph_orders = []
+    graph_revenue = []
+    for i in range(6, -1, -1):
+        date = today - timedelta(days=i)
+        graph_labels.append(date.strftime('%b %d'))
+        day_orders = Order.objects.filter(created_at__date=date)
+        graph_orders.append(day_orders.count())
+        day_rev = day_orders.exclude(status='Cancelled').aggregate(Sum('total_price'))['total_price__sum'] or 0
+        graph_revenue.append(float(day_rev))
+
+    context = {
+        'today_orders_count': today_orders_count,
+        'today_revenue': today_revenue,
+        'monthly_revenue': monthly_revenue,
+        'pending_orders': pending_orders,
+        'processing_orders': processing_orders,
+        'ready_make_orders': ready_make_orders,
+        'ready_pack_orders': ready_pack_orders,
+        'shipped_orders': shipped_orders,
+        'delivered_orders': delivered_orders,
+        'cancelled_orders': cancelled_orders,
+        'total_customers': total_customers,
+        'total_products': total_products,
+        'recent_orders': recent_orders,
+        'recent_payments': recent_payments,
+        'top_selling': top_selling,
+        'low_performing': low_performing,
+        'graph_labels': graph_labels,
+        'graph_orders': graph_orders,
+        'graph_revenue': graph_revenue,
+    }
+    return render(request, 'admin_dashboard/home.html', context)
+
+@admin_required
+def admin_orders(request):
+    status_filter = request.GET.get('status')
+    search_query = request.GET.get('search')
+    
+    orders = Order.objects.all().order_by('-created_at')
+    
+    if status_filter:
+        orders = orders.filter(status=status_filter)
+    if search_query:
+        orders = orders.filter(
+            Q(id__icontains=search_query) |
+            Q(full_name__icontains=search_query) |
+            Q(phone_number__icontains=search_query)
+        )
+        
+    context = {
+        'orders': orders,
+        'status_filter': status_filter,
+        'search_query': search_query,
+        'STATUS_CHOICES': Order.STATUS_CHOICES
+    }
+    return render(request, 'admin_dashboard/orders.html', context)
+
+@admin_required
+def admin_order_detail(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    if request.method == 'POST':
+        expected_delivery = request.POST.get('expected_delivery')
+        courier_name = request.POST.get('courier_name')
+        tracking_id = request.POST.get('tracking_id')
+        status = request.POST.get('status')
+        
+        if expected_delivery:
+            order.expected_delivery = expected_delivery
+        if courier_name:
+            order.courier_name = courier_name
+        if tracking_id:
+            order.tracking_id = tracking_id
+        if status:
+            order.status = status
+        order.save()
+        messages.success(request, "Order details updated successfully.")
+        return redirect('admin_order_detail', order_id=order.id)
+        
+    context = {
+        'order': order,
+        'STATUS_CHOICES': Order.STATUS_CHOICES
+    }
+    return render(request, 'admin_dashboard/order_detail.html', context)
+
+@admin_required
+def update_checklist(request, order_id):
+    if request.method == 'POST':
+        order = get_object_or_404(Order, id=order_id)
+        data = json.loads(request.body)
+        field = data.get('field')
+        value = data.get('value', False)
+        
+        if hasattr(order, field):
+            setattr(order, field, value)
+            order.save()
+            return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
+
+@admin_required
+def admin_products(request):
+    products = Product.objects.all().order_by('-created')
+    return render(request, 'admin_dashboard/products.html', {'products': products})
+
+from django import forms
+
+class ProductForm(forms.ModelForm):
+    class Meta:
+        model = Product
+        fields = [
+            'category', 'name', 'description', 'price', 'original_price', 
+            'image', 'external_image_url', 'available', 'is_featured',
+            'enable_customization', 'customization_label', 
+            'enable_size_selection', 'enable_name_pricing', 
+            'enable_photo_upload', 'enable_custom_message', 
+            'enable_gift_option', 'enable_thread_color', 
+            'enable_frame_color', 'enable_led_option',
+            'included_letters', 'extra_letter_price',
+            'is_bestseller', 'is_new_arrival'
+        ]
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 4}),
+        }
+
+@admin_required
+def admin_product_add(request):
+    if request.method == 'POST':
+        form = ProductForm(request.POST, request.FILES)
+        if form.is_valid():
+            product = form.save()
+            messages.success(request, f"Product {product.name} created successfully.")
+            return redirect('admin_products')
+    else:
+        form = ProductForm()
+    return render(request, 'admin_dashboard/product_form.html', {'form': form, 'action': 'Add'})
+
+@admin_required
+def admin_product_edit(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    if request.method == 'POST':
+        form = ProductForm(request.POST, request.FILES, instance=product)
+        if form.is_valid():
+            product = form.save()
+            messages.success(request, f"Product {product.name} updated successfully.")
+            return redirect('admin_products')
+    else:
+        form = ProductForm(instance=product)
+    return render(request, 'admin_dashboard/product_form.html', {'form': form, 'action': 'Edit', 'product': product})
+
+@admin_required
+def admin_product_delete(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    if request.method == 'POST':
+        product.delete()
+        messages.success(request, "Product deleted successfully.")
+    return redirect('admin_products')
+
+@admin_required
+def admin_customers(request):
+    customers = User.objects.filter(is_staff=False).annotate(
+        order_count=Count('orders', distinct=True),
+        total_spent=Sum('orders__total_price')
+    )
+    return render(request, 'admin_dashboard/customers.html', {'customers': customers})
+
+@admin_required
+def admin_customer_detail(request, customer_id):
+    customer = get_object_or_404(User, id=customer_id)
+    orders = customer.orders.all().order_by('-created_at')
+    addresses = customer.addresses.all()
+    wishlist_items = customer.wishlist.all()
+    
+    context = {
+        'customer': customer,
+        'orders': orders,
+        'addresses': addresses,
+        'wishlist_items': wishlist_items
+    }
+    return render(request, 'admin_dashboard/customer_detail.html', context)
+
+@admin_required
+def admin_payments(request):
+    orders = Order.objects.exclude(status='Cancelled').order_by('-created_at')
+    return render(request, 'admin_dashboard/payments.html', {'orders': orders})
+
+@admin_required
+def admin_settings(request):
+    settings_obj, created = BusinessSettings.objects.get_or_create(id=1)
+    if request.method == 'POST':
+        settings_obj.shipping_charges = request.POST.get('shipping_charges', 0)
+        settings_obj.production_time = request.POST.get('production_time', '3-7 Business Days')
+        settings_obj.contact_email = request.POST.get('contact_email', '')
+        settings_obj.contact_phone = request.POST.get('contact_phone', '')
+        settings_obj.gpay_upi_id = request.POST.get('gpay_upi_id', '')
+        settings_obj.phonepe_upi_id = request.POST.get('phonepe_upi_id', '')
+        settings_obj.instagram_url = request.POST.get('instagram_url', '')
+        settings_obj.pinterest_url = request.POST.get('pinterest_url', '')
+        
+        if 'logo' in request.FILES:
+            settings_obj.logo = request.FILES['logo']
+        if 'banner' in request.FILES:
+            settings_obj.banner = request.FILES['banner']
+            
+        settings_obj.save()
+        messages.success(request, "Settings updated successfully.")
+        return redirect('admin_settings')
+        
+    return render(request, 'admin_dashboard/settings.html', {'settings': settings_obj})
+
+import csv
+from django.http import JsonResponse, HttpResponse
+import json
+
+@admin_required
+def admin_reports(request):
+    return render(request, 'admin_dashboard/reports.html')
+
+@admin_required
+def export_orders_csv(request):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="orders_report.csv"'
+    
+    writer = csv.writer(response)
+    writer.writerow(['Order ID', 'Customer', 'Mobile', 'Status', 'Total Price', 'Date'])
+    
+    for order in Order.objects.all().order_by('-created_at'):
+        writer.writerow([
+            order.id, order.full_name, order.phone_number, 
+            order.status, f"R {order.total_price}", 
+            order.created_at.strftime('%Y-%m-%d %H:%M')
+        ])
+    return response
+
+@admin_required
+def export_customers_csv(request):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="customers_report.csv"'
+    
+    writer = csv.writer(response)
+    writer.writerow(['Username', 'Name', 'Email', 'Total Orders', 'Total Spent'])
+    
+    customers = User.objects.filter(is_staff=False).annotate(
+        order_count=Count('orders', distinct=True),
+        total_spent=Sum('orders__total_price')
+    )
+    for customer in customers:
+        writer.writerow([
+            customer.username, f"{customer.first_name} {customer.last_name}", 
+            customer.email, customer.order_count, 
+            f"R {customer.total_spent or 0}"
+        ])
+    return response
+    
+@admin_required
+def export_orders_pdf(request):
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4)
+    elements = []
+    styles = getSampleStyleSheet()
+    
+    title_style = ParagraphStyle(
+        'ReportTitle', parent=styles['Heading1'], fontSize=20, textColor=colors.HexColor('#0C2C47'), 
+        spaceAfter=15
+    )
+    elements.append(Paragraph("ThreadFusion Business Reports - Orders", title_style))
+    elements.append(Spacer(1, 10))
+    
+    table_data = [['ID', 'Customer', 'Status', 'Total', 'Date']]
+    for order in Order.objects.all().order_by('-created_at'):
+        table_data.append([
+            str(order.id),
+            order.full_name,
+            order.status,
+            f"Rs {order.total_price}",
+            order.created_at.strftime('%Y-%m-%d')
+        ])
+        
+    t = Table(table_data, colWidths=[20*mm, 50*mm, 35*mm, 35*mm, 40*mm])
+    t.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#0C2C47')),
+        ('TEXTCOLOR', (0,0), (-1,0), colors.white),
+        ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+        ('BOTTOMPADDING', (0,0), (-1,0), 8),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor('#F9F9F9')])
+    ]))
+    elements.append(t)
+    doc.build(elements)
+    buffer.seek(0)
+    
+    response = HttpResponse(buffer, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="orders_report.pdf"'
+    return response
+
+# ----------------- CUSTOM CUSTOMER DASHBOARD VIEWS -----------------
+
+@login_required
+def customer_dashboard(request):
+    orders = Order.objects.filter(user=request.user).order_by('-created_at')
+    wishlist_items = Wishlist.objects.filter(user=request.user).select_related('product')
+    addresses = Address.objects.filter(user=request.user)
+    reviews = Review.objects.filter(product__orderitem__order__user=request.user).distinct() # Fetch user product reviews
+    
+    context = {
+        'orders': orders,
+        'wishlist_items': wishlist_items,
+        'addresses': addresses,
+        'reviews': reviews,
+    }
+    return render(request, 'dashboard/home.html', context)

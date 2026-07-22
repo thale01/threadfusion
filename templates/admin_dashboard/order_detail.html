@@ -1,0 +1,279 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{% url 'admin_orders' %}" class="btn btn-link text-decoration-none text-secondary p-0 mb-2 small"><i class="fa-solid fa-arrow-left me-1"></i>Back to Orders</a>
+            <h2 class="fw-bold text-main">Order Details #{{ order.id }}</h2>
+            <p class="text-secondary small mb-0">Manage customizations, shipment, and checklists for this order.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'invoice' order.id %}" target="_blank" class="btn btn-outline-secondary rounded-pill px-4">
+                <i class="fa-solid fa-file-pdf me-2"></i>Print Invoice
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Column: Details & Items -->
+        <div class="col-lg-8">
+            <!-- Customer & Shipping -->
+            <div class="apple-card">
+                <h5 class="fw-bold mb-3"><i class="fa-solid fa-user-tag text-primary me-2"></i>Customer & Shipping</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <span class="small text-secondary fw-semibold">CUSTOMER NAME</span>
+                        <p class="text-main fw-medium mb-0">{{ order.full_name }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <span class="small text-secondary fw-semibold">MOBILE NUMBER</span>
+                        <p class="text-main fw-medium mb-0">{{ order.phone_number }}</p>
+                    </div>
+                    <div class="col-12">
+                        <span class="small text-secondary fw-semibold">DELIVERY ADDRESS</span>
+                        <p class="text-main fw-medium mb-0">{{ order.address }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ordered Items & Customizations -->
+            <div class="apple-card">
+                <h5 class="fw-bold mb-4"><i class="fa-solid fa-list-check text-primary me-2"></i>Ordered Items</h5>
+                {% for item in order.items.all %}
+                <div class="pb-4 mb-4 border-bottom border-light">
+                    <div class="d-flex gap-3 align-items-start">
+                        <img src="{{ item.product.get_image_url }}" class="rounded-3 object-fit-cover shadow-sm" style="width: 80px; height: 80px;" alt="{{ item.product.name }}">
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between">
+                                <h6 class="fw-bold text-main mb-1">{{ item.product.name }}</h6>
+                                <span class="fw-bold text-main">₹{{ item.price }}</span>
+                            </div>
+                            <p class="small text-muted mb-2">Quantity: {{ item.quantity }}</p>
+                            
+                            <!-- Customization Grid -->
+                            <div class="row g-2 bg-light p-3 rounded-3 mt-2 border">
+                                {% if item.product_size %}
+                                <div class="col-sm-6">
+                                    <span class="x-small text-secondary fw-bold d-block">SELECTED SIZE</span>
+                                    <span class="small text-main">{{ item.product_size }}</span>
+                                </div>
+                                {% endif %}
+                                {% if item.custom_name %}
+                                <div class="col-sm-6">
+                                    <span class="x-small text-secondary fw-bold d-block">ENTERED NAME</span>
+                                    <span class="small text-main">{{ item.custom_name }}</span>
+                                </div>
+                                <div class="col-sm-6">
+                                    <span class="x-small text-secondary fw-bold d-block">LETTER COUNT</span>
+                                    <span class="small text-main">{{ item.letter_count }} letters</span>
+                                </div>
+                                <div class="col-sm-6">
+                                    <span class="x-small text-secondary fw-bold d-block">EXTRA CHARGES</span>
+                                    <span class="small text-main">₹{{ item.extra_letter_charges|default:0 }}</span>
+                                </div>
+                                {% endif %}
+                                {% if item.frame_color %}
+                                <div class="col-sm-6">
+                                    <span class="x-small text-secondary fw-bold d-block">FRAME COLOR</span>
+                                    <span class="small text-main">{{ item.frame_color }}</span>
+                                </div>
+                                {% endif %}
+                                {% if item.thread_color %}
+                                <div class="col-sm-6">
+                                    <span class="x-small text-secondary fw-bold d-block">THREAD COLOR</span>
+                                    <span class="small text-main">{{ item.thread_color }}</span>
+                                </div>
+                                {% endif %}
+                                {% if item.led_option %}
+                                <div class="col-sm-6">
+                                    <span class="x-small text-secondary fw-bold d-block">LED LIGHTS</span>
+                                    <span class="small text-success"><i class="fa-solid fa-lightbulb me-1"></i>Included</span>
+                                </div>
+                                {% endif %}
+                                {% if item.customization_text %}
+                                <div class="col-12">
+                                    <span class="x-small text-secondary fw-bold d-block">CUSTOM TEXT / NOTES</span>
+                                    <span class="small text-main">{{ item.customization_text }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- Gift Info -->
+                {% if order.is_gift %}
+                <div class="p-3 bg-light-mint rounded-3 border mb-3">
+                    <h6 class="fw-bold mb-1 text-success"><i class="fa-solid fa-gift me-2"></i>Gift wrapping requested {% if order.gift_wrap %}(Premium wrapping ₹50 applied){% endif %}</h6>
+                    {% if order.gift_message %}
+                    <p class="small text-secondary mb-0"><strong>Message:</strong> "{{ order.gift_message }}"</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Uploaded Reference Photos -->
+            <div class="apple-card">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0"><i class="fa-solid fa-images text-primary me-2"></i>Uploaded Reference Images</h5>
+                    {% if order.images.exists %}
+                    <a href="{% url 'download_all_images' order.id %}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                        <i class="fa-solid fa-cloud-arrow-down me-1"></i>Download All Images
+                    </a>
+                    {% endif %}
+                </div>
+                
+                <div class="row g-3">
+                    {% for img in order.images.all %}
+                    <div class="col-6 col-sm-4 col-md-3">
+                        <div class="position-relative border rounded-3 overflow-hidden shadow-sm hover-lift">
+                            <img src="{{ img.image.url }}" class="img-fluid w-100 object-fit-cover" style="aspect-ratio: 1/1;" alt="Reference Photo">
+                            <a href="{{ img.image.url }}" download class="btn btn-dark btn-sm position-absolute bottom-0 end-0 m-2 rounded-circle" style="width: 32px; height: 32px; padding:0; display:flex; align-items:center; justify-content:center;">
+                                <i class="fa-solid fa-download"></i>
+                            </a>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12 py-3 text-center text-secondary small">
+                        No reference photos uploaded for this order.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Settings, Pipeline & Checklist -->
+        <div class="col-lg-4">
+            <!-- Production Pipeline Status -->
+            <div class="apple-card">
+                <h5 class="fw-bold mb-3"><i class="fa-solid fa-truck-ramp-box text-primary me-2"></i>Order Pipeline</h5>
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Update Order Status</label>
+                        <select name="status" class="form-select mb-3">
+                            {% for key, val in STATUS_CHOICES %}
+                            <option value="{{ key }}" {% if order.status == key %}selected{% endif %}>{{ val }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Courier Partner</label>
+                        <input type="text" name="courier_name" value="{{ order.courier_name|default:'' }}" class="form-control" placeholder="e.g. Delhivery, Bluedart...">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Tracking ID</label>
+                        <input type="text" name="tracking_id" value="{{ order.tracking_id|default:'' }}" class="form-control" placeholder="Enter tracking code...">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold">Expected Delivery Date</label>
+                        <input type="date" name="expected_delivery" value="{{ order.expected_delivery|date:'Y-m-d' }}" class="form-control">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill"><i class="fa-solid fa-floppy-disk me-2"></i>Save Pipeline Updates</button>
+                </form>
+            </div>
+
+            <!-- Production Workflow Checklist -->
+            <div class="apple-card">
+                <h5 class="fw-bold mb-3"><i class="fa-solid fa-circle-check text-primary me-2"></i>Production Checklist</h5>
+                <p class="x-small text-secondary mb-3">Checklist state saves instantly in background.</p>
+                
+                <div class="d-flex flex-column gap-3">
+                    <label class="form-check d-flex align-items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="form-check-input checklist-toggle" data-field="checklist_images_downloaded" {% if order.checklist_images_downloaded %}checked{% endif %}>
+                        <span class="small text-main">📥 Images Downloaded</span>
+                    </label>
+                    <label class="form-check d-flex align-items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="form-check-input checklist-toggle" data-field="checklist_design_prepared" {% if order.checklist_design_prepared %}checked{% endif %}>
+                        <span class="small text-main">✏️ Design Prepared</span>
+                    </label>
+                    <label class="form-check d-flex align-items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="form-check-input checklist-toggle" data-field="checklist_string_art_completed" {% if order.checklist_string_art_completed %}checked{% endif %}>
+                        <span class="small text-main">🧶 String Art Completed</span>
+                    </label>
+                    <label class="form-check d-flex align-items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="form-check-input checklist-toggle" data-field="checklist_quality_checked" {% if order.checklist_quality_checked %}checked{% endif %}>
+                        <span class="small text-main">🔍 Quality Checked</span>
+                    </label>
+                    <label class="form-check d-flex align-items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="form-check-input checklist-toggle" data-field="checklist_packed" {% if order.checklist_packed %}checked{% endif %}>
+                        <span class="small text-main">📦 Packed</span>
+                    </label>
+                    <label class="form-check d-flex align-items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="form-check-input checklist-toggle" data-field="checklist_courier_booked" {% if order.checklist_courier_booked %}checked{% endif %}>
+                        <span class="small text-main">🚚 Courier Booked</span>
+                    </label>
+                    <label class="form-check d-flex align-items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="form-check-input checklist-toggle" data-field="checklist_tracking_added" {% if order.checklist_tracking_added %}checked{% endif %}>
+                        <span class="small text-main">🔖 Tracking Added</span>
+                    </label>
+                    <label class="form-check d-flex align-items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="form-check-input checklist-toggle" data-field="checklist_customer_notified" {% if order.checklist_customer_notified %}checked{% endif %}>
+                        <span class="small text-main">🔔 Customer Notified</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Payment Details -->
+            <div class="apple-card">
+                <h5 class="fw-bold mb-3"><i class="fa-solid fa-file-invoice-dollar text-primary me-2"></i>Payment Details</h5>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <span class="x-small text-secondary fw-semibold">TOTAL PAID</span>
+                        <p class="text-main fw-bold mb-0">₹{{ order.total_price }}</p>
+                    </div>
+                    <div class="col-6">
+                        <span class="x-small text-secondary fw-semibold">STATUS</span>
+                        <p class="text-success fw-bold mb-0"><i class="fa-solid fa-circle-check me-1"></i>Successful</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const toggles = document.querySelectorAll('.checklist-toggle');
+        
+        toggles.forEach(toggle => {
+            toggle.addEventListener('change', function() {
+                const field = this.getAttribute('data-field');
+                const value = this.checked;
+                
+                fetch("{% url 'update_checklist' order.id %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        field: field,
+                        value: value
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status !== 'success') {
+                        alert("Failed to update checklist item. Please retry.");
+                        this.checked = !value; // Revert
+                    }
+                })
+                .catch(error => {
+                    console.error("Error updating checklist:", error);
+                    alert("Network error. Could not sync checklist.");
+                    this.checked = !value; // Revert
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

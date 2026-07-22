@@ -1,0 +1,103 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="mb-4">
+        <h2 class="fw-bold text-main">Settings</h2>
+        <p class="text-secondary small">Manage website logo, banners, shipping costs, production times, and active UPI endpoints.</p>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row g-4">
+            <!-- Left: Configurations -->
+            <div class="col-lg-8">
+                <!-- Contact & Shipping -->
+                <div class="apple-card">
+                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-gears text-primary me-2"></i>General Business Details</h5>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Shipping Charges (₹)</label>
+                            <input type="number" name="shipping_charges" value="{{ settings.shipping_charges }}" class="form-control" placeholder="0 for Free Shipping...">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Default Production Time</label>
+                            <input type="text" name="production_time" value="{{ settings.production_time }}" class="form-control" placeholder="e.g. 3-7 Business Days...">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Support Email Address</label>
+                            <input type="email" name="contact_email" value="{{ settings.contact_email|default:'' }}" class="form-control" placeholder="support@threadfusion.com...">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Support Phone Number</label>
+                            <input type="text" name="contact_phone" value="{{ settings.contact_phone|default:'' }}" class="form-control" placeholder="+91 9999999999...">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Integration settings -->
+                <div class="apple-card">
+                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-qrcode text-primary me-2"></i>UPI Payment Gateways</h5>
+                    <p class="small text-secondary mb-3">These UPI IDs will be used to generate deep-links at checkout dynamically.</p>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Google Pay UPI ID</label>
+                            <input type="text" name="gpay_upi_id" value="{{ settings.gpay_upi_id|default:'' }}" class="form-control" placeholder="username@oksbi...">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">PhonePe UPI ID</label>
+                            <input type="text" name="phonepe_upi_id" value="{{ settings.phonepe_upi_id|default:'' }}" class="form-control" placeholder="username@ybl...">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Social Media Links -->
+                <div class="apple-card">
+                    <h5 class="fw-bold mb-3"><i class="fa-brands fa-instagram text-primary me-2"></i>Social Channels</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Instagram Page Link</label>
+                            <input type="url" name="instagram_url" value="{{ settings.instagram_url|default:'' }}" class="form-control" placeholder="https://instagram.com/username...">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Pinterest Page Link</label>
+                            <input type="url" name="pinterest_url" value="{{ settings.pinterest_url|default:'' }}" class="form-control" placeholder="https://pinterest.com/username...">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Assets upload -->
+            <div class="col-lg-4">
+                <div class="apple-card">
+                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-photo-film text-primary me-2"></i>Website Identity Assets</h5>
+                    
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold">Store Logo</label>
+                        {% if settings.logo %}
+                        <div class="mb-2">
+                            <img src="{{ settings.logo.url }}" class="img-thumbnail rounded-3 shadow-sm" style="max-height: 80px;" alt="Store Logo">
+                        </div>
+                        {% endif %}
+                        <input type="file" name="logo" accept="image/*" class="form-control">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold">Store Banner</label>
+                        {% if settings.banner %}
+                        <div class="mb-2">
+                            <img src="{{ settings.banner.url }}" class="img-thumbnail rounded-3 shadow-sm" style="max-height: 80px;" alt="Banner">
+                        </div>
+                        {% endif %}
+                        <input type="file" name="banner" accept="image/*" class="form-control">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill shadow"><i class="fa-solid fa-floppy-disk me-2"></i>Save Configurations</button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

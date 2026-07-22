@@ -1,0 +1,308 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block extra_head %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold text-main">Welcome back, Admin 👋</h2>
+            <p class="text-secondary small">Overview of today's business performance & operations status.</p>
+        </div>
+    </div>
+
+    <!-- Analytics Cards -->
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-3 mb-4">
+        <!-- Today's Revenue -->
+        <div class="col">
+            <div class="apple-card">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="small text-secondary fw-semibold">TODAY'S REVENUE</span>
+                    <i class="fa-solid fa-indian-rupee-sign text-primary fs-5"></i>
+                </div>
+                <h3 class="fw-bold mb-1">₹{{ today_revenue|floatformat:2 }}</h3>
+                <span class="small text-muted">Today's sales revenue</span>
+            </div>
+        </div>
+
+        <!-- Monthly Revenue -->
+        <div class="col">
+            <div class="apple-card">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="small text-secondary fw-semibold">MONTHLY REVENUE</span>
+                    <i class="fa-solid fa-calendar-check text-success fs-5"></i>
+                </div>
+                <h3 class="fw-bold mb-1">₹{{ monthly_revenue|floatformat:2 }}</h3>
+                <span class="small text-muted">This month's total revenue</span>
+            </div>
+        </div>
+
+        <!-- Today's Orders -->
+        <div class="col">
+            <div class="apple-card">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="small text-secondary fw-semibold">TODAY'S ORDERS</span>
+                    <i class="fa-solid fa-cart-shopping text-warning fs-5"></i>
+                </div>
+                <h3 class="fw-bold mb-1">{{ today_orders_count }}</h3>
+                <span class="small text-muted">Placed today</span>
+            </div>
+        </div>
+
+        <!-- Total Customers -->
+        <div class="col">
+            <div class="apple-card">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="small text-secondary fw-semibold">TOTAL CUSTOMERS</span>
+                    <i class="fa-solid fa-users text-info fs-5"></i>
+                </div>
+                <h3 class="fw-bold mb-1">{{ total_customers }}</h3>
+                <span class="small text-muted">Registered clients</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Flow Cards -->
+    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-6 g-3 mb-4">
+        <div class="col">
+            <div class="apple-card p-3 text-center mb-0">
+                <h6 class="small text-secondary mb-1">Pending</h6>
+                <h4 class="fw-bold mb-0 text-warning">{{ pending_orders }}</h4>
+            </div>
+        </div>
+        <div class="col">
+            <div class="apple-card p-3 text-center mb-0">
+                <h6 class="small text-secondary mb-1">Processing</h6>
+                <h4 class="fw-bold mb-0 text-primary">{{ processing_orders }}</h4>
+            </div>
+        </div>
+        <div class="col">
+            <div class="apple-card p-3 text-center mb-0">
+                <h6 class="small text-secondary mb-1">Ready Make</h6>
+                <h4 class="fw-bold mb-0 text-info">{{ ready_make_orders }}</h4>
+            </div>
+        </div>
+        <div class="col">
+            <div class="apple-card p-3 text-center mb-0">
+                <h6 class="small text-secondary mb-1">Ready Pack</h6>
+                <h4 class="fw-bold mb-0 text-info">{{ ready_pack_orders }}</h4>
+            </div>
+        </div>
+        <div class="col">
+            <div class="apple-card p-3 text-center mb-0">
+                <h6 class="small text-secondary mb-1">Shipped</h6>
+                <h4 class="fw-bold mb-0 text-purple">{{ shipped_orders }}</h4>
+            </div>
+        </div>
+        <div class="col">
+            <div class="apple-card p-3 text-center mb-0">
+                <h6 class="small text-secondary mb-1">Delivered</h6>
+                <h4 class="fw-bold mb-0 text-success">{{ delivered_orders }}</h4>
+            </div>
+        </div>
+    </div>
+
+    <!-- Graphs / Charts -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="apple-card">
+                <h5 class="fw-bold mb-4">Revenue & Sales Graph</h5>
+                <div style="height: 300px;">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="apple-card">
+                <h5 class="fw-bold mb-4">Orders Graph (Last 7 Days)</h5>
+                <div style="height: 300px;">
+                    <canvas id="ordersChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lists row -->
+    <div class="row mb-4">
+        <!-- Top Sellers -->
+        <div class="col-lg-6">
+            <div class="apple-card">
+                <h5 class="fw-bold mb-3"><i class="fa-solid fa-crown text-warning me-2"></i>Top Selling Products</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr class="small text-secondary">
+                                <th>Product</th>
+                                <th>Total Sold</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in top_selling %}
+                            <tr>
+                                <td>
+                                    <span class="fw-semibold text-main">{{ item.product__name }}</span>
+                                </td>
+                                <td><span class="badge bg-primary rounded-pill px-3">{{ item.total_qty }} units</span></td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="2" class="text-center text-muted py-3 small">No units sold yet.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Low Performers -->
+        <div class="col-lg-6">
+            <div class="apple-card">
+                <h5 class="fw-bold mb-3"><i class="fa-solid fa-arrow-trend-down text-danger me-2"></i>Low Performing Products</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr class="small text-secondary">
+                                <th>Product</th>
+                                <th>Total Sold</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in low_performing %}
+                            <tr>
+                                <td>
+                                    <span class="fw-semibold text-main">{{ item.name }}</span>
+                                </td>
+                                <td><span class="badge bg-secondary rounded-pill px-3">{{ item.total_sold|default:0 }} units</span></td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="2" class="text-center text-muted py-3 small">No catalog products.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Orders Ledger -->
+    <div class="row">
+        <div class="col-12">
+            <div class="apple-card">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0">Recent Orders</h5>
+                    <a href="{% url 'admin_orders' %}" class="btn btn-primary btn-sm rounded-pill px-3">View All Orders</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr class="small text-secondary border-bottom">
+                                <th>ID</th>
+                                <th>Customer</th>
+                                <th>Phone</th>
+                                <th>Status</th>
+                                <th>Total</th>
+                                <th>Date</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in recent_orders %}
+                            <tr>
+                                <td><span class="fw-bold text-main">#{{ order.id }}</span></td>
+                                <td>{{ order.full_name }}</td>
+                                <td>{{ order.phone_number }}</td>
+                                <td>
+                                    <span class="badge rounded-pill px-3 py-1 
+                                        {% if order.status == 'Pending' %}bg-warning{% elif order.status == 'Processing' %}bg-primary{% elif order.status == 'Delivered' %}bg-success{% elif order.status == 'Cancelled' %}bg-danger{% else %}bg-info{% endif %}">
+                                        {{ order.status }}
+                                    </span>
+                                </td>
+                                <td><span class="fw-bold text-main">₹{{ order.total_price }}</span></td>
+                                <td class="small text-secondary">{{ order.created_at|date:"M d, Y H:i" }}</td>
+                                <td class="text-end">
+                                    <a href="{% url 'admin_order_detail' order.id %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">Details</a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center text-secondary py-4">No recent orders found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const ctxRevenue = document.getElementById('revenueChart').getContext('2d');
+        const ctxOrders = document.getElementById('ordersChart').getContext('2d');
+
+        // Parse Django variables
+        const graphLabels = {{ graph_labels|safe }};
+        const graphRevenue = {{ graph_revenue|safe }};
+        const graphOrders = {{ graph_orders|safe }};
+
+        // Revenue Chart (Line)
+        new Chart(ctxRevenue, {
+            type: 'line',
+            data: {
+                labels: graphLabels,
+                datasets: [{
+                    label: 'Revenue (₹)',
+                    data: graphRevenue,
+                    borderColor: '#0071e3',
+                    backgroundColor: 'rgba(0, 113, 227, 0.1)',
+                    fill: true,
+                    tension: 0.3,
+                    borderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { grid: { color: 'rgba(0,0,0,0.05)' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // Orders Chart (Bar)
+        new Chart(ctxOrders, {
+            type: 'bar',
+            data: {
+                labels: graphLabels,
+                datasets: [{
+                    label: 'Orders',
+                    data: graphOrders,
+                    backgroundColor: '#0a84ff',
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { grid: { color: 'rgba(0,0,0,0.05)' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

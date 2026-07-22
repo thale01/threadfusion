@@ -104,6 +104,49 @@
                             </div>
                         {% endif %}
 
+                        {% if product.enable_thread_color %}
+                            <div class="mb-4 border-bottom border-white pb-4">
+                                <label class="form-label d-block mb-3 fw-bold">
+                                    <i class="fa-solid fa-palette text-primary me-2"></i> Select Thread Color <span class="text-danger">*</span>
+                                </label>
+                                <select name="thread_color" required class="form-select border-accent py-3 px-4 shadow-sm rounded-3">
+                                    <option value="">Choose Thread Color</option>
+                                    <option value="Crimson Red">Crimson Red</option>
+                                    <option value="Navy Blue">Navy Blue</option>
+                                    <option value="Emerald Green">Emerald Green</option>
+                                    <option value="Pastel Pink">Pastel Pink</option>
+                                    <option value="Mustard Yellow">Mustard Yellow</option>
+                                    <option value="Pure White">Pure White</option>
+                                    <option value="Charcoal Black">Charcoal Black</option>
+                                </select>
+                            </div>
+                        {% endif %}
+
+                        {% if product.enable_frame_color %}
+                            <div class="mb-4 border-bottom border-white pb-4">
+                                <label class="form-label d-block mb-3 fw-bold">
+                                    <i class="fa-solid fa-border-all text-primary me-2"></i> Select Frame Color <span class="text-danger">*</span>
+                                </label>
+                                <select name="frame_color" required class="form-select border-accent py-3 px-4 shadow-sm rounded-3">
+                                    <option value="">Choose Frame Color</option>
+                                    <option value="Classic Black">Classic Black</option>
+                                    <option value="Oak Wood">Oak Wood</option>
+                                    <option value="Rustic Brown">Rustic Brown</option>
+                                    <option value="Metallic Gold">Metallic Gold</option>
+                                    <option value="Minimalist White">Minimalist White</option>
+                                </select>
+                            </div>
+                        {% endif %}
+
+                        {% if product.enable_led_option %}
+                            <div class="mb-4 border-bottom border-white pb-4">
+                                <label class="form-label d-flex align-items-center gap-2 fw-bold cursor-pointer" for="led_option">
+                                    <input type="checkbox" name="led_option" id="led_option" class="form-check-input">
+                                    <span>💡 Add LED Backlight (+₹150)</span>
+                                </label>
+                            </div>
+                        {% endif %}
+
                         {% if product.enable_customization %}
                             <!-- Keep the old customization UI for compatibility -->
                             <div class="mb-4 border-bottom border-white pb-4">
@@ -140,6 +183,10 @@
                                 <span>Extra Letters:</span>
                                 <span id="breakdown-extra-val">₹0</span>
                             </div>
+                            <div id="breakdown-led-row" class="d-flex justify-content-between small text-secondary mb-1 d-none">
+                                <span>LED Backlight:</span>
+                                <span id="breakdown-led-val">₹150</span>
+                            </div>
                             <hr class="my-2">
                             <div class="d-flex justify-content-between fw-bold text-main">
                                 <span>Total:</span>
@@ -148,6 +195,7 @@
                         </div>
 
                         <!-- Gift Option -->
+                        {% if product.enable_gift_option %}
                         <div class="mb-4 border-bottom border-white pb-4">
                             <label class="form-label d-flex align-items-center gap-2 fw-bold cursor-pointer" for="is_gift">
                                 <input type="checkbox" name="is_gift" id="is_gift" class="form-check-input" onchange="document.getElementById('gift_message_box').classList.toggle('d-none')">
@@ -158,11 +206,12 @@
                                 <textarea name="gift_message" class="form-control border-accent shadow-sm rounded-3" rows="3" placeholder="Write your heartfelt message here..."></textarea>
                             </div>
                         </div>
+                        {% endif %}
 
                         <!-- Production & Made to Order Info -->
                         <div class="mt-3 mb-4 p-3 bg-white rounded-3 shadow-sm border border-accent text-center">
                             <h6 class="fw-bold mb-1 text-main"><i class="fa-solid fa-sparkles text-primary me-2"></i> ✨ Handmade & Made to Order</h6>
-                            <p class="text-secondary small mb-0"><i class="fa-solid fa-calendar-days text-primary me-1"></i> Production Time: 3–7 Business Days</p>
+                            <p class="text-secondary small mb-0"><i class="fa-solid fa-calendar-days text-primary me-1"></i> Production Time: {{ settings.production_time|default:"3–7 Business Days" }}</p>
                         </div>
 
                         <div class="row g-3">
@@ -327,12 +376,17 @@
         const breakdownExtraVal = document.getElementById('breakdown-extra-val');
         const breakdownTotalVal = document.getElementById('breakdown-total-val');
 
+        const ledOptionInput = document.getElementById('led_option');
+        const breakdownLedRow = document.getElementById('breakdown-led-row');
+        const breakdownLedVal = document.getElementById('breakdown-led-val');
+
         // Config variables from django
         const productBasePrice = parseFloat("{{ product.price }}") || 0;
         const extraPricePerLetter = parseFloat("{{ product.extra_letter_price|default:40 }}") || 0;
         const includedLetters = parseInt("{{ product.included_letters|default:5 }}") || 0;
         const enableNamePricing = "{{ product.enable_name_pricing|yesno:'true,false' }}" === "true";
         const enableSizeSelection = "{{ product.enable_size_selection|yesno:'true,false' }}" === "true";
+        const enableLedOption = "{{ product.enable_led_option|yesno:'true,false' }}" === "true";
 
         function updatePrice() {
             let basePrice = productBasePrice;
@@ -363,7 +417,12 @@
                 }
             }
 
-            const finalPrice = basePrice + extraCharge;
+            let ledCharge = 0;
+            if (enableLedOption && ledOptionInput && ledOptionInput.checked) {
+                ledCharge = 150;
+            }
+
+            const finalPrice = basePrice + extraCharge + ledCharge;
 
             // Update main display
             if (priceDisplay) {
@@ -372,13 +431,21 @@
 
             // 3. Breakdown display
             if (breakdownDiv) {
-                if (enableNamePricing || (enableSizeSelection && sizeInputs.length > 0)) {
+                if (enableNamePricing || (enableSizeSelection && sizeInputs.length > 0) || (enableLedOption && ledOptionInput && ledOptionInput.checked)) {
                     breakdownDiv.classList.remove('d-none');
                     if (breakdownBaseLabel) {
                         breakdownBaseLabel.textContent = enableSizeSelection ? "Selected Size Price:" : "Base Price:";
                     }
                     if (breakdownBaseVal) breakdownBaseVal.textContent = '₹' + basePrice;
                     if (breakdownExtraVal) breakdownExtraVal.textContent = '₹' + extraCharge;
+                    
+                    if (breakdownLedRow) {
+                        if (ledCharge > 0) {
+                            breakdownLedRow.classList.remove('d-none');
+                        } else {
+                            breakdownLedRow.classList.add('d-none');
+                        }
+                    }
                     if (breakdownTotalVal) breakdownTotalVal.textContent = '₹' + finalPrice;
                 } else {
                     breakdownDiv.classList.add('d-none');
@@ -393,6 +460,10 @@
 
         if (customNameInput) {
             customNameInput.addEventListener('input', updatePrice);
+        }
+
+        if (ledOptionInput) {
+            ledOptionInput.addEventListener('change', updatePrice);
         }
 
         // Initialize price display

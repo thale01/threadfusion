@@ -1,0 +1,211 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{% url 'admin_products' %}" class="btn btn-link text-decoration-none text-secondary p-0 mb-2 small"><i class="fa-solid fa-arrow-left me-1"></i>Back to Products</a>
+            <h2 class="fw-bold text-main">{{ action }} Product</h2>
+            <p class="text-secondary small mb-0">Configure basic product metadata and custom design properties.</p>
+        </div>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row g-4">
+            <!-- Left Column: Core Fields -->
+            <div class="col-lg-8">
+                <!-- Basic Information -->
+                <div class="apple-card">
+                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-file-invoice text-primary me-2"></i>Product Details</h5>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Product Name</label>
+                            {{ form.name }}
+                            {% if form.name.errors %}<div class="text-danger small mt-1">{{ form.name.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Category</label>
+                            {{ form.category }}
+                            {% if form.category.errors %}<div class="text-danger small mt-1">{{ form.category.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">Description</label>
+                            {{ form.description }}
+                            {% if form.description.errors %}<div class="text-danger small mt-1">{{ form.description.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Selling Price (₹)</label>
+                            {{ form.price }}
+                            {% if form.price.errors %}<div class="text-danger small mt-1">{{ form.price.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Original Price (₹) <span class="text-muted">(Optional discount)</span></label>
+                            {{ form.original_price }}
+                            {% if form.original_price.errors %}<div class="text-danger small mt-1">{{ form.original_price.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customization Switches -->
+                <div class="apple-card">
+                    <h5 class="fw-bold mb-4"><i class="fa-solid fa-sliders text-primary me-2"></i>Customization Features</h5>
+                    <p class="small text-secondary mb-4">Toggle features to dynamically show or hide customization blocks on the frontend product page.</p>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="form-check form-switch p-3 bg-light rounded-3 border d-flex justify-content-between align-items-center m-0">
+                                <label class="form-check-label small fw-bold text-main" style="margin-left:0;">📏 Enable Size Selection</label>
+                                {{ form.enable_size_selection }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch p-3 bg-light rounded-3 border d-flex justify-content-between align-items-center m-0">
+                                <label class="form-check-label small fw-bold text-main" style="margin-left:0;">✏️ Enable Name/Letter Pricing</label>
+                                {{ form.enable_name_pricing }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch p-3 bg-light rounded-3 border d-flex justify-content-between align-items-center m-0">
+                                <label class="form-check-label small fw-bold text-main" style="margin-left:0;">📷 Enable Photo Upload</label>
+                                {{ form.enable_photo_upload }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch p-3 bg-light rounded-3 border d-flex justify-content-between align-items-center m-0">
+                                <label class="form-check-label small fw-bold text-main" style="margin-left:0;">💬 Enable Custom Message</label>
+                                {{ form.enable_custom_message }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch p-3 bg-light rounded-3 border d-flex justify-content-between align-items-center m-0">
+                                <label class="form-check-label small fw-bold text-main" style="margin-left:0;">🎁 Enable Gift Option</label>
+                                {{ form.enable_gift_option }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch p-3 bg-light rounded-3 border d-flex justify-content-between align-items-center m-0">
+                                <label class="form-check-label small fw-bold text-main" style="margin-left:0;">🧶 Enable Thread Color Select</label>
+                                {{ form.enable_thread_color }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch p-3 bg-light rounded-3 border d-flex justify-content-between align-items-center m-0">
+                                <label class="form-check-label small fw-bold text-main" style="margin-left:0;">🔲 Enable Frame Color Select</label>
+                                {{ form.enable_frame_color }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch p-3 bg-light rounded-3 border d-flex justify-content-between align-items-center m-0">
+                                <label class="form-check-label small fw-bold text-main" style="margin-left:0;">💡 Enable LED Lights Option</label>
+                                {{ form.enable_led_option }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Letter Pricing Configurations -->
+                <div class="apple-card" id="letter-pricing-fields">
+                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-calculator text-primary me-2"></i>Letter Pricing Rules</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Base Included Letters</label>
+                            {{ form.included_letters }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Price per Extra Letter (₹)</label>
+                            {{ form.extra_letter_price }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Settings & Badges -->
+            <div class="col-lg-4">
+                <!-- Images upload -->
+                <div class="apple-card">
+                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-image text-primary me-2"></i>Product Photo</h5>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Upload Image File</label>
+                        {{ form.image }}
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold">Or External Image URL</label>
+                        {{ form.external_image_url }}
+                    </div>
+                </div>
+
+                <!-- Status & Highlights -->
+                <div class="apple-card">
+                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-square-poll-vertical text-primary me-2"></i>Visibility & Badges</h5>
+                    
+                    <div class="d-flex flex-column gap-3 mb-4">
+                        <label class="form-check d-flex align-items-center gap-2 cursor-pointer m-0">
+                            {{ form.available }}
+                            <span class="small fw-semibold text-main">Display Live on Store</span>
+                        </label>
+                        <label class="form-check d-flex align-items-center gap-2 cursor-pointer m-0">
+                            {{ form.is_featured }}
+                            <span class="small fw-semibold text-main">Mark as Featured Product</span>
+                        </label>
+                        <label class="form-check d-flex align-items-center gap-2 cursor-pointer m-0">
+                            {{ form.is_bestseller }}
+                            <span class="small fw-semibold text-main">Mark as Bestseller</span>
+                        </label>
+                        <label class="form-check d-flex align-items-center gap-2 cursor-pointer m-0">
+                            {{ form.is_new_arrival }}
+                            <span class="small fw-semibold text-main">Mark as New Arrival</span>
+                        </label>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Customization Title Label</label>
+                        {{ form.customization_label }}
+                        <p class="x-small text-muted mt-1">Leave empty to use default: "Customize Your Artisan Piece".</p>
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill shadow mb-3">
+                    <i class="fa-solid fa-cloud-arrow-up me-2"></i>Save Product Details
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Simple Bootstrap Form Injector styling -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Add form-control class to all inputs
+        const textInputs = document.querySelectorAll('input[type="text"], input[type="number"], select, textarea');
+        textInputs.forEach(input => {
+            input.classList.add('form-control');
+        });
+        
+        // Add form-check-input to checkboxes
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(cb => {
+            cb.classList.add('form-check-input');
+        });
+
+        // Hide/Show Letter Pricing Configs based on toggle
+        const namePricingToggle = document.querySelector('input[name="enable_name_pricing"]');
+        const letterFieldsDiv = document.getElementById('letter-pricing-fields');
+        
+        function toggleLetterFields() {
+            if (namePricingToggle.checked) {
+                letterFieldsDiv.style.display = 'block';
+            } else {
+                letterFieldsDiv.style.display = 'none';
+            }
+        }
+        
+        if (namePricingToggle && letterFieldsDiv) {
+            namePricingToggle.addEventListener('change', toggleLetterFields);
+            toggleLetterFields(); // init
+        }
+    });
+</script>
+{% endblock %}

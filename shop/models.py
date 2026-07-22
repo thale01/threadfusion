@@ -25,10 +25,16 @@ class Product(models.Model):
     enable_name_pricing = models.BooleanField(default=False)
     enable_photo_upload = models.BooleanField(default=False)
     enable_custom_message = models.BooleanField(default=False)
+    enable_gift_option = models.BooleanField(default=True)
+    enable_thread_color = models.BooleanField(default=False)
+    enable_frame_color = models.BooleanField(default=False)
+    enable_led_option = models.BooleanField(default=False)
     included_letters = models.IntegerField(default=5)
     extra_letter_price = models.IntegerField(default=40)
     available = models.BooleanField(default=True)
     is_featured = models.BooleanField(default=False)
+    is_bestseller = models.BooleanField(default=False)
+    is_new_arrival = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
@@ -81,7 +87,10 @@ class Cart(models.Model):
         return sum(item.get_total_price() for item in self.items.all())
     
     def get_delivery_charge(self):
-        return 0 # Free Shipping
+        settings = BusinessSettings.objects.first()
+        if settings:
+            return settings.shipping_charges
+        return 0 # Fallback default
 
     def get_discount_amount(self):
         if self.coupon and self.coupon.active:
@@ -109,6 +118,9 @@ class CartItem(models.Model):
     custom_name = models.CharField(max_length=100, blank=True, null=True)
     letter_count = models.IntegerField(blank=True, null=True)
     extra_letter_charges = models.IntegerField(blank=True, null=True)
+    frame_color = models.CharField(max_length=50, blank=True, null=True)
+    thread_color = models.CharField(max_length=50, blank=True, null=True)
+    led_option = models.BooleanField(default=False)
 
     def get_total_price(self):
         base_price = self.price_override if self.price_override is not None else self.product.price
@@ -118,8 +130,11 @@ class Order(models.Model):
     STATUS_CHOICES = (
         ('Pending', 'Pending'),
         ('Processing', 'Processing'),
+        ('Ready to Make', 'Ready to Make'),
+        ('Ready to Pack', 'Ready to Pack'),
         ('Shipped', 'Shipped'),
         ('Delivered', 'Delivered'),
+        ('Cancelled', 'Cancelled'),
     )
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
     full_name = models.CharField(max_length=100)
@@ -131,8 +146,21 @@ class Order(models.Model):
     delivery_charge = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
     custom_text = models.CharField(max_length=255, blank=True, null=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='Pending')
     tracking_id = models.CharField(max_length=100, blank=True, null=True)
+    courier_name = models.CharField(max_length=100, blank=True, null=True)
+    expected_delivery = models.DateField(blank=True, null=True)
+    
+    # Checklist fields
+    checklist_images_downloaded = models.BooleanField(default=False)
+    checklist_design_prepared = models.BooleanField(default=False)
+    checklist_string_art_completed = models.BooleanField(default=False)
+    checklist_quality_checked = models.BooleanField(default=False)
+    checklist_packed = models.BooleanField(default=False)
+    checklist_courier_booked = models.BooleanField(default=False)
+    checklist_tracking_added = models.BooleanField(default=False)
+    checklist_customer_notified = models.BooleanField(default=False)
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -158,6 +186,9 @@ class OrderItem(models.Model):
     custom_name = models.CharField(max_length=100, blank=True, null=True)
     letter_count = models.IntegerField(blank=True, null=True)
     extra_letter_charges = models.IntegerField(blank=True, null=True)
+    frame_color = models.CharField(max_length=50, blank=True, null=True)
+    thread_color = models.CharField(max_length=50, blank=True, null=True)
+    led_option = models.BooleanField(default=False)
 
     def __str__(self):
         size_str = f" ({self.product_size})" if self.product_size else ""
@@ -212,3 +243,21 @@ class Coupon(models.Model):
 
     def __str__(self):
         return self.code
+
+class BusinessSettings(models.Model):
+    logo = models.ImageField(upload_to='settings/', blank=True, null=True)
+    banner = models.ImageField(upload_to='settings/', blank=True, null=True)
+    shipping_charges = models.IntegerField(default=0)
+    production_time = models.CharField(max_length=100, default="3-7 Business Days")
+    contact_email = models.EmailField(blank=True, null=True)
+    contact_phone = models.CharField(max_length=20, blank=True, null=True)
+    gpay_upi_id = models.CharField(max_length=100, blank=True, null=True)
+    phonepe_upi_id = models.CharField(max_length=100, blank=True, null=True)
+    instagram_url = models.URLField(blank=True, null=True)
+    pinterest_url = models.URLField(blank=True, null=True)
+
+    class Meta:
+        verbose_name_plural = "Business Settings"
+
+    def __str__(self):
+        return "Business Settings"

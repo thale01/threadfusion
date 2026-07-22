@@ -28,4 +28,27 @@ urlpatterns = [
     path('wishlist/toggle/<int:product_id>/', views.toggle_wishlist, name='toggle_wishlist'),
     path('apply-coupon/', views.apply_coupon, name='apply_coupon'),
     path('product/<int:product_id>/add-review/', views.add_review, name='add_review'),
+
+    # Admin Dashboard Routes
+    path('admin-dashboard/login/', views.admin_login, name='admin_login'),
+    path('admin-dashboard/logout/', views.admin_logout, name='admin_logout'),
+    path('admin-dashboard/', views.admin_home, name='admin_home'),
+    path('admin-dashboard/orders/', views.admin_orders, name='admin_orders'),
+    path('admin-dashboard/orders/<int:order_id>/', views.admin_order_detail, name='admin_order_detail'),
+    path('admin-dashboard/orders/<int:order_id>/update-checklist/', views.update_checklist, name='update_checklist'),
+    path('admin-dashboard/products/', views.admin_products, name='admin_products'),
+    path('admin-dashboard/products/add/', views.admin_product_add, name='admin_product_add'),
+    path('admin-dashboard/products/edit/<int:product_id>/', views.admin_product_edit, name='admin_product_edit'),
+    path('admin-dashboard/products/delete/<int:product_id>/', views.admin_product_delete, name='admin_product_delete'),
+    path('admin-dashboard/customers/', views.admin_customers, name='admin_customers'),
+    path('admin-dashboard/customers/<int:customer_id>/', views.admin_customer_detail, name='admin_customer_detail'),
+    path('admin-dashboard/payments/', views.admin_payments, name='admin_payments'),
+    path('admin-dashboard/settings/', views.admin_settings, name='admin_settings'),
+    path('admin-dashboard/reports/', views.admin_reports, name='admin_reports'),
+    path('admin-dashboard/reports/orders/csv/', views.export_orders_csv, name='export_orders_csv'),
+    path('admin-dashboard/reports/customers/csv/', views.export_customers_csv, name='export_customers_csv'),
+    path('admin-dashboard/reports/orders/pdf/', views.export_orders_pdf, name='export_orders_pdf'),
+
+    # Customer Dashboard Routes
+    path('dashboard/', views.customer_dashboard, name='customer_dashboard'),
 ]

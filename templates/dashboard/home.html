@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+
+{% block title %}My Account Dashboard | ThreadFusion{% endblock %}
+
+{% block content %}
+<div class="container section-padding">
+    <div class="row mb-5">
+        <div class="col-12 text-center" data-aos="fade-up">
+            <h1 class="fw-bold display-5 mb-2">My Account</h1>
+            <p class="text-secondary mb-0">Track active orders, manage your wishlist, and update delivery details.</p>
+        </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="row g-4">
+        <!-- Sidebar Navigation -->
+        <div class="col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                <div class="text-center py-4 border-bottom border-light mb-3">
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center fw-bold fs-4 mb-3" style="width: 60px; height: 60px;">
+                        {{ request.user.username|make_list|first|upper }}
+                    </div>
+                    <h5 class="fw-bold mb-1">{{ request.user.get_full_name|default:request.user.username }}</h5>
+                    <p class="small text-secondary mb-0">{{ request.user.email }}</p>
+                </div>
+                
+                <div class="nav flex-column nav-pills" id="dashboard-pills" role="tablist">
+                    <button class="nav-link active text-start py-3 px-4 rounded-3 fw-semibold mb-2" data-bs-toggle="pill" data-bs-target="#tab-orders" type="button">
+                        <i class="fa-solid fa-box-open me-2"></i>My Orders
+                    </button>
+                    <button class="nav-link text-start py-3 px-4 rounded-3 fw-semibold mb-2" data-bs-toggle="pill" data-bs-target="#tab-wishlist" type="button">
+                        <i class="fa-solid fa-heart me-2 text-danger"></i>Wishlist
+                    </button>
+                    <button class="nav-link text-start py-3 px-4 rounded-3 fw-semibold mb-2" data-bs-toggle="pill" data-bs-target="#tab-addresses" type="button">
+                        <i class="fa-solid fa-address-book me-2"></i>Saved Addresses
+                    </button>
+                    <button class="nav-link text-start py-3 px-4 rounded-3 fw-semibold mb-2" data-bs-toggle="pill" data-bs-target="#tab-reviews" type="button">
+                        <i class="fa-solid fa-star me-2 text-warning"></i>My Reviews
+                    </button>
+                    <a href="{% url 'logout' %}" class="nav-link text-start py-3 px-4 rounded-3 fw-semibold text-danger">
+                        <i class="fa-solid fa-right-from-bracket me-2"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Details Pane -->
+        <div class="col-lg-9">
+            <div class="tab-content" id="dashboard-content">
+                <!-- Orders Tab -->
+                <div class="tab-pane fade show active" id="tab-orders">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                        <h4 class="fw-bold mb-4">My Orders</h4>
+                        
+                        <div class="d-flex flex-column gap-4">
+                            {% for order in orders %}
+                            <div class="border rounded-4 p-4 shadow-sm bg-white hover-lift">
+                                <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                                    <div>
+                                        <h5 class="fw-bold text-main mb-1">Order #{{ order.id }}</h5>
+                                        <span class="small text-secondary">Ordered on {{ order.created_at|date:"M d, Y" }}</span>
+                                    </div>
+                                    <div class="text-md-end mt-2 mt-md-0">
+                                        <span class="badge rounded-pill px-4 py-2 small 
+                                            {% if order.status == 'Pending' %}bg-warning
+                                            {% elif order.status == 'Processing' %}bg-primary
+                                            {% elif order.status == 'Delivered' %}bg-success
+                                            {% elif order.status == 'Cancelled' %}bg-danger
+                                            {% else %}bg-info
+                                            {% endif %}">
+                                            {{ order.status }}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div class="row g-3">
+                                    <div class="col-md-8">
+                                        <h6 class="fw-bold mb-2">Items Summary:</h6>
+                                        <ul class="list-unstyled ps-0 mb-0">
+                                            {% for item in order.items.all %}
+                                            <li class="small text-secondary mb-1">
+                                                <i class="fa-solid fa-circle-notch text-primary me-2" style="font-size:0.5rem;"></i>
+                                                {{ item.quantity }}x {{ item.product.name }}
+                                                {% if item.product_size %}({{ item.product_size }}){% endif %}
+                                                {% if item.custom_name %} - Custom Name: "{{ item.custom_name }}"{% endif %}
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-4 text-md-end">
+                                        <span class="small text-secondary d-block">TOTAL PRICE</span>
+                                        <h4 class="fw-bold text-primary">₹{{ order.total_price }}</h4>
+                                    </div>
+                                </div>
+
+                                <!-- Shipping & expected delivery tracker -->
+                                {% if order.status != 'Cancelled' %}
+                                <div class="bg-light p-3 rounded-3 mt-4 border">
+                                    <div class="row g-2 align-items-center">
+                                        <div class="col-sm-6">
+                                            <span class="small text-secondary fw-semibold d-block">EXPECTED DELIVERY</span>
+                                            <span class="small text-main fw-bold">{{ order.expected_delivery|date:"M d, Y"|default:"Determined soon..." }}</span>
+                                        </div>
+                                        <div class="col-sm-6 text-sm-end">
+                                            {% if order.tracking_id %}
+                                            <a href="https://www.delhivery.com/track/package/{{ order.tracking_id }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                                <i class="fa-solid fa-truck-fast me-1"></i>Track Package
+                                            </a>
+                                            {% else %}
+                                            <span class="small text-muted"><i class="fa-solid fa-circle-info me-1"></i>Tracking details available upon shipment.</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                
+                                <div class="mt-4 text-end">
+                                    <a href="{% url 'order_detail' order.id %}" class="btn btn-outline-secondary rounded-pill px-4 me-2">View Receipt</a>
+                                    <a href="{% url 'invoice' order.id %}" target="_blank" class="btn btn-outline-primary rounded-pill px-4">Download Invoice</a>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="text-center py-5">
+                                <i class="fa-solid fa-box-open fs-1 text-muted mb-3"></i>
+                                <p class="text-secondary mb-0">You haven't placed any orders yet.</p>
+                                <a href="{% url 'product_list' %}" class="btn btn-primary rounded-pill px-4 mt-3">Start Shopping</a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wishlist Tab -->
+                <div class="tab-pane fade" id="tab-wishlist">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                        <h4 class="fw-bold mb-4">Saved Wishlist</h4>
+                        
+                        <div class="row g-3">
+                            {% for item in wishlist_items %}
+                            <div class="col-md-6 col-lg-4">
+                                <div class="border rounded-4 p-3 text-center bg-white shadow-sm hover-lift">
+                                    <img src="{{ item.product.get_image_url }}" class="rounded-3 object-fit-cover shadow-sm mb-3" style="width: 100px; height: 100px;" alt="{{ item.product.name }}">
+                                    <h6 class="fw-bold mb-1 text-truncate">{{ item.product.name }}</h6>
+                                    <p class="text-primary fw-bold mb-3">₹{{ item.product.price }}</p>
+                                    <div class="d-grid gap-2">
+                                        <a href="{% url 'product_detail' item.product.id %}" class="btn btn-primary btn-sm rounded-pill py-2">View Item</a>
+                                        <a href="{% url 'toggle_wishlist' item.product.id %}" class="btn btn-outline-danger btn-sm rounded-pill py-2">Remove</a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="col-12 text-center py-5">
+                                <i class="fa-solid fa-heart-broken fs-1 text-muted mb-3"></i>
+                                <p class="text-secondary mb-0">Your wishlist is empty.</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Saved Addresses Tab -->
+                <div class="tab-pane fade" id="tab-addresses">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h4 class="fw-bold mb-0">Shipping Addresses</h4>
+                            <a href="{% url 'add_address' %}" class="btn btn-outline-primary rounded-pill px-4"><i class="fa-solid fa-plus me-1"></i>Add Address</a>
+                        </div>
+                        
+                        <div class="row g-3">
+                            {% for addr in addresses %}
+                            <div class="col-md-6">
+                                <div class="p-4 bg-light rounded-4 border h-100 d-flex flex-column justify-content-between">
+                                    <div>
+                                        <span class="badge bg-primary mb-2">{% if addr.is_default %}Default Address{% else %}Shipping{% endif %}</span>
+                                        <h5 class="fw-bold text-main mb-1">{{ addr.full_name }}</h5>
+                                        <p class="small text-secondary mb-2"><i class="fa-solid fa-phone me-1"></i>{{ addr.phone_number }}</p>
+                                        <p class="small text-main mb-0">{{ addr.street_address }}, {{ addr.city }} - {{ addr.postal_code }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="col-12 text-center py-5">
+                                <i class="fa-solid fa-address-book fs-1 text-muted mb-3"></i>
+                                <p class="text-secondary mb-0">No shipping addresses configured yet.</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- My Reviews Tab -->
+                <div class="tab-pane fade" id="tab-reviews">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                        <h4 class="fw-bold mb-4">My Reviews</h4>
+                        
+                        <div class="d-flex flex-column gap-3">
+                            {% for review in reviews %}
+                            <div class="p-3 bg-light rounded-4 border">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="fw-bold mb-0">{{ review.product.name }}</h6>
+                                    <div class="text-warning">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= review.rating %}
+                                                <i class="fa-solid fa-star small"></i>
+                                            {% else %}
+                                                <i class="fa-regular fa-star small"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <p class="small text-secondary mb-0 italic">"{{ review.comment }}"</p>
+                            </div>
+                            {% empty %}
+                            <div class="text-center py-5">
+                                <i class="fa-solid fa-comment-slash fs-1 text-muted mb-3"></i>
+                                <p class="text-secondary mb-0">You haven't submitted any product reviews yet.</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

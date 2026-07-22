@@ -1,0 +1,121 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="mb-4">
+        <a href="{% url 'admin_customers' %}" class="btn btn-link text-decoration-none text-secondary p-0 mb-2 small"><i class="fa-solid fa-arrow-left me-1"></i>Back to Customers</a>
+        <h2 class="fw-bold text-main">Customer Profile: {{ customer.username }}</h2>
+        <p class="text-secondary small mb-0">Detailed view of LTV values, shipping addresses, wishlist, and histories.</p>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left: Profile Details & Addresses -->
+        <div class="col-lg-4">
+            <!-- Profile Info Card -->
+            <div class="apple-card text-center py-4">
+                <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center fw-bold mb-3 fs-3" style="width: 72px; height: 72px;">
+                    {{ customer.username|make_list|first|upper }}
+                </div>
+                <h5 class="fw-bold text-main mb-1">{{ customer.first_name }} {{ customer.last_name }}</h5>
+                <p class="text-secondary small mb-3">{{ customer.email|default:"No email registered" }}</p>
+                <div class="d-flex justify-content-around border-top pt-3 mt-2">
+                    <div>
+                        <span class="x-small text-secondary fw-bold d-block">ORDERS</span>
+                        <span class="fw-bold text-main">{{ orders.count }}</span>
+                    </div>
+                    <div>
+                        <span class="x-small text-secondary fw-bold d-block">TOTAL SPENT</span>
+                        <span class="fw-bold text-main">₹{{ customer.orders.all|regroup:"total_price"|colors|default:0 }}</span>
+                        <!-- Calculate spent in template using aggregation in views preferably -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Saved Addresses -->
+            <div class="apple-card">
+                <h5 class="fw-bold mb-3"><i class="fa-solid fa-address-book text-primary me-2"></i>Saved Addresses</h5>
+                <div class="d-flex flex-column gap-3">
+                    {% for addr in addresses %}
+                    <div class="p-3 bg-light rounded-3 border">
+                        <span class="badge bg-secondary mb-2">{% if addr.is_default %}Default Address{% else %}Shipping{% endif %}</span>
+                        <h6 class="fw-bold mb-1 small">{{ addr.full_name }}</h6>
+                        <p class="small text-secondary mb-1"><i class="fa-solid fa-phone me-1"></i>{{ addr.phone_number }}</p>
+                        <p class="small text-main mb-0">{{ addr.street_address }}, {{ addr.city }} - {{ addr.postal_code }}</p>
+                    </div>
+                    {% empty %}
+                    <p class="small text-secondary text-center py-2 mb-0">No saved addresses found.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Order History & Wishlist -->
+        <div class="col-lg-8">
+            <!-- Order History -->
+            <div class="apple-card">
+                <h5 class="fw-bold mb-4"><i class="fa-solid fa-history text-primary me-2"></i>Order History</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr class="small text-secondary">
+                                <th>Order ID</th>
+                                <th>Status</th>
+                                <th>Total</th>
+                                <th>Date</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                            <tr>
+                                <td><span class="fw-bold text-main">#{{ order.id }}</span></td>
+                                <td>
+                                    <span class="badge rounded-pill px-3 py-1 
+                                        {% if order.status == 'Pending' %}bg-warning
+                                        {% elif order.status == 'Processing' %}bg-primary
+                                        {% elif order.status == 'Delivered' %}bg-success
+                                        {% elif order.status == 'Cancelled' %}bg-danger
+                                        {% else %}bg-info
+                                        {% endif %}">
+                                        {{ order.status }}
+                                    </span>
+                                </td>
+                                <td><span class="fw-bold text-main">₹{{ order.total_price }}</span></td>
+                                <td class="small text-secondary">{{ order.created_at|date:"M d, Y" }}</td>
+                                <td class="text-end">
+                                    <a href="{% url 'admin_order_detail' order.id %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">Details</a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center text-secondary py-3 small">No orders placed by this customer.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Wishlist -->
+            <div class="apple-card">
+                <h5 class="fw-bold mb-4"><i class="fa-solid fa-heart text-danger me-2"></i>Wishlist Items</h5>
+                <div class="row g-3">
+                    {% for item in wishlist_items %}
+                    <div class="col-sm-6 col-md-4">
+                        <div class="border rounded-3 p-3 text-center">
+                            <img src="{{ item.product.get_image_url }}" class="rounded-3 object-fit-cover shadow-sm mb-3" style="width: 64px; height: 64px;" alt="Product">
+                            <h6 class="fw-bold mb-1 small text-truncate">{{ item.product.name }}</h6>
+                            <span class="fw-bold text-primary small">₹{{ item.product.price }}</span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12 py-3 text-center text-secondary small">
+                        This customer's wishlist is empty.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

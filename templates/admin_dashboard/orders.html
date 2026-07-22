@@ -1,0 +1,113 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-main">Customer Orders</h2>
+            <p class="text-secondary small mb-0">Monitor and advance your handmade orders through the workshop pipeline.</p>
+        </div>
+    </div>
+
+    <!-- Filters & Search -->
+    <div class="apple-card p-3 mb-4">
+        <form method="GET" class="row g-3 align-items-center">
+            <!-- Search bar -->
+            <div class="col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+                    <input type="text" name="search" value="{{ search_query|default:'' }}" class="form-control border-start-0 ps-0" placeholder="Search by ID, Name or Mobile...">
+                </div>
+            </div>
+            
+            <!-- Status dropdown -->
+            <div class="col-md-4">
+                <select name="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    {% for key, val in STATUS_CHOICES %}
+                    <option value="{{ key }}" {% if status_filter == key %}selected{% endif %}>{{ val }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <!-- Apply button -->
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100 rounded-pill"><i class="fa-solid fa-filter me-2"></i>Filter</button>
+                <a href="{% url 'admin_orders' %}" class="btn btn-outline-secondary w-100 rounded-pill">Reset</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="apple-card">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr class="small text-secondary border-bottom">
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Contact</th>
+                        <th>Amount</th>
+                        <th>Workflow Status</th>
+                        <th>Order Date</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>
+                            <span class="fw-bold text-main">#{{ order.id }}</span>
+                        </td>
+                        <td>
+                            <div class="fw-semibold text-main">{{ order.full_name }}</div>
+                            <span class="small text-muted">{{ order.items.count }} items</span>
+                        </td>
+                        <td>
+                            <div class="small text-main"><i class="fa-solid fa-phone me-1 text-muted"></i>{{ order.phone_number }}</div>
+                        </td>
+                        <td>
+                            <span class="fw-bold text-main">₹{{ order.total_price }}</span>
+                        </td>
+                        <td>
+                            <span class="badge rounded-pill px-3 py-1 
+                                {% if order.status == 'Pending' %}bg-warning
+                                {% elif order.status == 'Processing' %}bg-primary
+                                {% elif order.status == 'Ready to Make' %}bg-info text-dark
+                                {% elif order.status == 'Ready to Pack' %}bg-info text-dark
+                                {% elif order.status == 'Shipped' %}bg-purple
+                                {% elif order.status == 'Delivered' %}bg-success
+                                {% else %}bg-danger
+                                {% endif %}">
+                                {{ order.status }}
+                            </span>
+                        </td>
+                        <td class="small text-secondary">
+                            {{ order.created_at|date:"M d, Y" }}
+                            <div class="x-small">{{ order.created_at|date:"H:i" }}</div>
+                        </td>
+                        <td class="text-end">
+                            <div class="d-inline-flex gap-2">
+                                <a href="{% url 'admin_order_detail' order.id %}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                    <i class="fa-solid fa-eye me-1"></i>View Details
+                                </a>
+                                <a href="{% url 'invoice' order.id %}" target="_blank" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                                    <i class="fa-solid fa-file-pdf me-1"></i>Invoice
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-secondary py-5">
+                            <i class="fa-solid fa-box-open fs-2 mb-3 text-muted"></i>
+                            <p class="mb-0">No business orders found matching criteria.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

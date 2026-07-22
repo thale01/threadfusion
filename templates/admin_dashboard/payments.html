@@ -1,0 +1,56 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="mb-4">
+        <h2 class="fw-bold text-main">Payments Ledger</h2>
+        <p class="text-secondary small">Reconcile customer payments, tracking IDs, amounts, and dates.</p>
+    </div>
+
+    <!-- Payments Ledger Table -->
+    <div class="apple-card">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr class="small text-secondary border-bottom">
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Transaction/UPI ID</th>
+                        <th>Payment Method</th>
+                        <th>Amount</th>
+                        <th>Payment Date</th>
+                        <th>Payment Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'admin_order_detail' order.id %}" class="fw-bold text-decoration-none text-main">#{{ order.id }}</a>
+                        </td>
+                        <td>{{ order.full_name }}</td>
+                        <td>
+                            <!-- If transaction id is saved in custom_text or courier notes -->
+                            <span class="font-monospace small text-secondary">{{ order.tracking_id|default:"Prepaid confirmed" }}</span>
+                        </td>
+                        <td><span class="badge bg-light text-main border px-3"><i class="fa-solid fa-mobile-screen-button me-1"></i>UPI Scan</span></td>
+                        <td><span class="fw-bold text-main">₹{{ order.total_price }}</span></td>
+                        <td class="small text-secondary">{{ order.created_at|date:"M d, Y H:i" }}</td>
+                        <td>
+                            <span class="badge bg-success rounded-pill px-3 py-1"><i class="fa-solid fa-circle-check me-1"></i>Paid</span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-secondary py-5">
+                            <i class="fa-solid fa-receipt fs-2 mb-3 text-muted"></i>
+                            <p class="mb-0">No transaction logs available.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

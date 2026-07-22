@@ -1,0 +1,66 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="mb-4">
+        <h2 class="fw-bold text-main">Reports & Analytics Exports</h2>
+        <p class="text-secondary small">Generate and download official PDF summaries or CSV sheets compatible with Microsoft Excel.</p>
+    </div>
+
+    <div class="row g-4">
+        <!-- PDF Export Card -->
+        <div class="col-md-4">
+            <div class="apple-card text-center py-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex p-3 mb-3">
+                        <i class="fa-solid fa-file-pdf fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Orders Ledger (PDF)</h5>
+                    <p class="small text-secondary px-3">Downloads a printable, structured business digest of all orders, totals, statuses, and transaction timestamps.</p>
+                </div>
+                <div class="mt-4">
+                    <a href="{% url 'export_orders_pdf' %}" class="btn btn-outline-danger w-100 rounded-pill py-2">
+                        <i class="fa-solid fa-download me-2"></i>Download PDF Report
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- CSV Orders Card -->
+        <div class="col-md-4">
+            <div class="apple-card text-center py-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="bg-success bg-opacity-10 text-success rounded-circle d-inline-flex p-3 mb-3">
+                        <i class="fa-solid fa-file-csv fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Orders Dataset (CSV)</h5>
+                    <p class="small text-secondary px-3">Exports a detailed tabular dataset of orders, customer details, mobile contacts, status flows, and prices for custom Excel analyses.</p>
+                </div>
+                <div class="mt-4">
+                    <a href="{% url 'export_orders_csv' %}" class="btn btn-outline-success w-100 rounded-pill py-2">
+                        <i class="fa-solid fa-download me-2"></i>Download Excel Sheet
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- CSV Customers Card -->
+        <div class="col-md-4">
+            <div class="apple-card text-center py-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="bg-success bg-opacity-10 text-success rounded-circle d-inline-flex p-3 mb-3">
+                        <i class="fa-solid fa-users fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Customer Base (CSV)</h5>
+                    <p class="small text-secondary px-3">Downloads a spreadsheet catalog of all registered customer profiles, emails, order frequencies, and lifetime value spent (LTV).</p>
+                </div>
+                <div class="mt-4">
+                    <a href="{% url 'export_customers_csv' %}" class="btn btn-outline-success w-100 rounded-pill py-2">
+                        <i class="fa-solid fa-download me-2"></i>Download Customers Sheet
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

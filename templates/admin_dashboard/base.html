@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Admin | ThreadFusion</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --sidebar-width: 260px;
+            --bg-glass: rgba(255, 255, 255, 0.7);
+            --border-glass: rgba(225, 225, 225, 0.4);
+            --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+            --apple-bg: #f5f5f7;
+            --sidebar-bg: #ffffff;
+            --text-main: #1d1d1f;
+            --primary-accent: #0071e3;
+        }
+
+        [data-bs-theme="dark"] {
+            --bg-glass: rgba(28, 28, 30, 0.7);
+            --border-glass: rgba(255, 255, 255, 0.1);
+            --apple-bg: #000000;
+            --sidebar-bg: #1c1c1e;
+            --text-main: #f5f5f7;
+            --primary-accent: #0a84ff;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--apple-bg);
+            color: var(--text-main);
+            overflow-x: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Sidebar styling */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-glass);
+            z-index: 1000;
+            padding-top: 1.5rem;
+            transition: transform 0.3s ease, background-color 0.3s ease;
+        }
+
+        .sidebar-brand {
+            font-weight: 800;
+            font-size: 1.25rem;
+            color: var(--primary-accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 0 1.5rem;
+            margin-bottom: 2rem;
+            display: block;
+            text-decoration: none;
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .nav-menu-item {
+            margin: 0.25rem 1rem;
+        }
+
+        .nav-menu-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: var(--text-main);
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 500;
+            font-size: 0.925rem;
+            transition: all 0.2s ease;
+        }
+
+        .nav-menu-link i {
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+            opacity: 0.8;
+        }
+
+        .nav-menu-link:hover, .nav-menu-link.active {
+            background-color: var(--primary-accent);
+            color: #ffffff !important;
+        }
+
+        /* Main Content area */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            padding: 2rem;
+            transition: margin-left 0.3s ease;
+        }
+
+        /* Top Navbar */
+        .top-navbar {
+            background-color: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-glass);
+            border-radius: 16px;
+            box-shadow: var(--shadow-glass);
+            padding: 0.75rem 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Premium Apple-inspired Cards */
+        .apple-card {
+            background-color: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-glass);
+            border-radius: 20px;
+            box-shadow: var(--shadow-glass);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .apple-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.08);
+        }
+
+        /* Responsive */
+        @media (max-width: 991.98px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <a href="{% url 'admin_home' %}" class="sidebar-brand">
+            <i class="fa-solid fa-gem me-2"></i>ThreadFusion
+        </a>
+        <ul class="nav-menu">
+            <li class="nav-menu-item">
+                <a href="{% url 'admin_home' %}" class="nav-menu-link {% if request.resolver_match.url_name == 'admin_home' %}active{% endif %}">
+                    <i class="fa-solid fa-chart-pie"></i>Dashboard
+                </a>
+            </li>
+            <li class="nav-menu-item">
+                <a href="{% url 'admin_orders' %}" class="nav-menu-link {% if 'order' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fa-solid fa-box-open"></i>Orders
+                </a>
+            </li>
+            <li class="nav-menu-item">
+                <a href="{% url 'admin_products' %}" class="nav-menu-link {% if 'product' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fa-solid fa-tags"></i>Products
+                </a>
+            </li>
+            <li class="nav-menu-item">
+                <a href="{% url 'admin_customers' %}" class="nav-menu-link {% if 'customer' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fa-solid fa-users"></i>Customers
+                </a>
+            </li>
+            <li class="nav-menu-item">
+                <a href="{% url 'admin_payments' %}" class="nav-menu-link {% if 'payment' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fa-solid fa-credit-card"></i>Payments
+                </a>
+            </li>
+            <li class="nav-menu-item">
+                <a href="{% url 'admin_reports' %}" class="nav-menu-link {% if 'report' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>Reports
+                </a>
+            </li>
+            <li class="nav-menu-item">
+                <a href="{% url 'admin_settings' %}" class="nav-menu-link {% if 'settings' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fa-solid fa-sliders"></i>Settings
+                </a>
+            </li>
+            <li class="nav-menu-item mt-4">
+                <a href="{% url 'admin_logout' %}" class="nav-menu-link text-danger">
+                    <i class="fa-solid fa-right-from-bracket"></i>Logout
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <!-- Main Content wrapper -->
+    <main class="main-content">
+        <!-- Top Navbar -->
+        <header class="top-navbar">
+            <div class="d-flex align-items-center">
+                <button class="btn d-lg-none me-3 border-0" id="sidebarToggle">
+                    <i class="fa-solid fa-bars fs-4"></i>
+                </button>
+                <h4 class="fw-bold mb-0 text-main">Business Operations</h4>
+            </div>
+            
+            <div class="d-flex align-items-center gap-3">
+                <!-- Theme toggler -->
+                <button class="btn btn-outline-secondary border-0 rounded-circle" id="themeToggle">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
+                
+                <!-- Notification Bell -->
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary border-0 rounded-circle position-relative" type="button" data-bs-toggle="dropdown">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 mt-2 p-3" style="width: 280px;">
+                        <h6 class="fw-bold mb-3">Notifications</h6>
+                        <li><hr class="dropdown-divider"></li>
+                        <p class="small text-muted mb-0">No new business notifications.</p>
+                    </ul>
+                </div>
+                
+                <!-- Profile dropdown -->
+                <div class="dropdown">
+                    <button class="btn d-flex align-items-center gap-2 p-1 border-0" type="button" data-bs-toggle="dropdown">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 38px; height: 38px;">
+                            {{ request.user.username|make_list|first|upper }}
+                        </div>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 mt-2">
+                        <li><a class="dropdown-item py-2 px-3 small fw-medium" href="{% url 'home' %}"><i class="fa-solid fa-globe me-2"></i>Go to Site</a></li>
+                        <li><a class="dropdown-item py-2 px-3 small text-danger fw-medium" href="{% url 'admin_logout' %}"><i class="fa-solid fa-right-from-bracket me-2"></i>Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show rounded-4 shadow-sm mb-4" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Bootstrap Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Sidebar Toggle for Mobile
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        if(sidebarToggle) {
+            sidebarToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('show');
+            });
+        }
+
+        // Close sidebar on outer click on mobile
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth < 992 && !sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+                sidebar.classList.remove('show');
+            }
+        });
+
+        // Theme Toggle (Light/Dark Mode)
+        const themeToggle = document.getElementById('themeToggle');
+        const htmlElement = document.documentElement;
+        
+        // Load saved theme
+        const savedTheme = localStorage.getItem('adminTheme') || 'light';
+        htmlElement.setAttribute('data-bs-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-bs-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            htmlElement.setAttribute('data-bs-theme', newTheme);
+            localStorage.setItem('adminTheme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+
+        function updateThemeIcon(theme) {
+            const icon = themeToggle.querySelector('i');
+            if (theme === 'dark') {
+                icon.className = 'fa-solid fa-sun';
+            } else {
+                icon.className = 'fa-solid fa-moon';
+            }
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
