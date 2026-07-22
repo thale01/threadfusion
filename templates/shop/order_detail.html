@@ -52,6 +52,21 @@
                                             style="width: 70px; height: 70px;" alt="{{ item.product.name }}">
                                         <div>
                                             <h6 class="fw-bold mb-1">{{ item.product.name }}{% if item.product_size %} ({{ item.product_size }}){% endif %}</h6>
+                                            {% if item.custom_name %}
+                                            <div class="badge bg-accent text-main small fw-normal py-1 px-2 mb-1">
+                                                <i class="fa-solid fa-signature me-1"></i> Name: {{ item.custom_name }}
+                                            </div>
+                                            {% endif %}
+                                            {% if item.letter_count is not None %}
+                                            <div class="badge bg-accent text-main small fw-normal py-1 px-2 mb-1">
+                                                <i class="fa-solid fa-calculator me-1"></i> Letters: {{ item.letter_count }}
+                                            </div>
+                                            {% endif %}
+                                            {% if item.extra_letter_charges %}
+                                            <div class="badge bg-accent text-main small fw-normal py-1 px-2 mb-1">
+                                                <i class="fa-solid fa-indian-rupee-sign me-1"></i> Extra Cost: ₹{{ item.extra_letter_charges }}
+                                            </div>
+                                            {% endif %}
                                             {% if item.customization_text %}
                                             <div class="badge bg-accent text-main small fw-normal py-1 px-2 mb-1">
                                                 <i class="fa-solid fa-pen-nib me-1"></i> {{ item.customization_text }}

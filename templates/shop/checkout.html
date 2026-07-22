@@ -189,6 +189,9 @@
                                 <div class="bg-light rounded px-2 py-1 small fw-bold text-main">{{ item.quantity }}x</div>
                                 <div>
                                     <h6 class="small fw-bold mb-0">{{ item.product.name }}{% if item.product_size %} ({{ item.product_size }}){% endif %}</h6>
+                                    {% if item.custom_name %}
+                                        <p class="text-muted mb-0" style="font-size: 0.65rem;"><i class="fa-solid fa-signature"></i> Name: {{ item.custom_name }}</p>
+                                    {% endif %}
                                     {% if item.customization_text %}
                                         <p class="text-muted mb-0" style="font-size: 0.65rem;">{{ item.customization_text }}</p>
                                     {% endif %}

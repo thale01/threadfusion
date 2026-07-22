@@ -22,6 +22,12 @@ class Product(models.Model):
     stock = models.IntegerField(default=0)
     customization_label = models.CharField(max_length=100, blank=True, help_text="Label for customization field (e.g. 'Enter name')")
     enable_customization = models.BooleanField(default=False)
+    enable_size_selection = models.BooleanField(default=False)
+    enable_name_pricing = models.BooleanField(default=False)
+    enable_photo_upload = models.BooleanField(default=False)
+    enable_custom_message = models.BooleanField(default=False)
+    included_letters = models.IntegerField(default=5)
+    extra_letter_price = models.IntegerField(default=40)
     available = models.BooleanField(default=True)
     is_featured = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
@@ -101,6 +107,9 @@ class CartItem(models.Model):
     customization_text = models.CharField(max_length=255, blank=True, null=True)
     customer_name = models.CharField(max_length=100, blank=True, null=True)
     customization_image = models.ImageField(upload_to='customizations/', blank=True, null=True)
+    custom_name = models.CharField(max_length=100, blank=True, null=True)
+    letter_count = models.IntegerField(blank=True, null=True)
+    extra_letter_charges = models.IntegerField(blank=True, null=True)
 
     def get_total_price(self):
         base_price = self.price_override if self.price_override is not None else self.product.price
@@ -147,6 +156,9 @@ class OrderItem(models.Model):
     quantity = models.PositiveIntegerField(default=1)
     customization_text = models.CharField(max_length=255, blank=True, null=True)
     customization_image = models.ImageField(upload_to='order_customizations/', blank=True, null=True)
+    custom_name = models.CharField(max_length=100, blank=True, null=True)
+    letter_count = models.IntegerField(blank=True, null=True)
+    extra_letter_charges = models.IntegerField(blank=True, null=True)
 
     def __str__(self):
         size_str = f" ({self.product_size})" if self.product_size else ""

@@ -166,15 +166,36 @@ def add_to_cart(request):
         size_id = request.POST.get('size_id')
         size_str = None
         price_override = None
+        base_price = product.price
 
-        if size_id:
-            from .models import ProductSize
-            try:
-                ps = ProductSize.objects.get(id=size_id, product=product)
-                size_str = ps.size
-                price_override = ps.price
-            except ProductSize.DoesNotExist:
-                pass
+        if product.enable_size_selection:
+            if size_id:
+                from .models import ProductSize
+                try:
+                    ps = ProductSize.objects.get(id=size_id, product=product)
+                    size_str = ps.size
+                    base_price = ps.price
+                    price_override = base_price
+                except ProductSize.DoesNotExist:
+                    pass
+
+        custom_name = None
+        letter_count = None
+        extra_letter_charges = None
+
+        if product.enable_name_pricing:
+            custom_name = request.POST.get('custom_name', '').strip()
+            # Clean and get length of the name
+            cleaned_name = custom_name.replace(" ", "")
+            letter_count = len(cleaned_name)
+            if letter_count > product.included_letters:
+                extra_letter_charges = (letter_count - product.included_letters) * product.extra_letter_price
+            else:
+                extra_letter_charges = 0
+            price_override = int(base_price) + int(extra_letter_charges)
+        elif product.enable_size_selection and size_str:
+            # Set price override to selected size price even if name pricing is disabled
+            price_override = int(base_price)
             
         cart_item = CartItem.objects.create(
             cart=cart, 
@@ -183,7 +204,10 @@ def add_to_cart(request):
             price_override=price_override,
             quantity=quantity,
             customization_text=customization,
-            customer_name=customer_name
+            customer_name=customer_name,
+            custom_name=custom_name,
+            letter_count=letter_count,
+            extra_letter_charges=extra_letter_charges
         )
         
         # Save multiple images to CustomImage linked to CartItem
@@ -261,7 +285,10 @@ def checkout(request):
                 price=item.price_override if item.price_override is not None else item.product.price,
                 quantity=item.quantity,
                 customization_text=item.customization_text,
-                customization_image=item.customization_image
+                customization_image=item.customization_image,
+                custom_name=item.custom_name,
+                letter_count=item.letter_count,
+                extra_letter_charges=item.extra_letter_charges
             )
             
             # Move and rename CustomImages from CartItem to Order
@@ -381,6 +408,8 @@ def generate_invoice(request, order_id):
             product_desc = f"<b>{item.product.name}</b>"
             if item.product_size:
                 product_desc += f" ({item.product_size})"
+            if item.custom_name:
+                product_desc += f"<br/><font size='8' color='{mauve}'>Name: {item.custom_name}</font>"
             if item.customization_text:
                 product_desc += f"<br/><font size='8' color='{mauve}'>Note: {item.customization_text}</font>"
             

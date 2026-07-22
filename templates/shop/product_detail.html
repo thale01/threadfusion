@@ -53,7 +53,7 @@
                         {% csrf_token %}
                         <input type="hidden" name="product_id" value="{{ product.id }}">
                         
-                        {% if product.sizes.all %}
+                        {% if product.enable_size_selection and product.sizes.all %}
                             <div class="mb-4 border-bottom border-white pb-4">
                                 <label class="form-label d-block mb-3 fw-bold">
                                     <i class="fa-solid fa-ruler-combined text-primary me-2"></i> Select Size <span class="text-danger">*</span>
@@ -66,8 +66,43 @@
                                 </div>
                             </div>
                         {% endif %}
-                        
+
+                        {% if product.enable_name_pricing %}
+                            <div class="mb-4 border-bottom border-white pb-4">
+                                <label class="form-label d-block mb-3 fw-bold">
+                                    <i class="fa-solid fa-signature text-primary me-2"></i> Enter Name <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" name="custom_name" id="custom_name" placeholder="Enter name to customize..." class="form-control border-accent py-3 px-4 shadow-sm rounded-3">
+                                <div class="d-flex justify-content-between mt-2 small text-secondary">
+                                    <span id="letter-count-info">Letters: 0 (Included: {{ product.included_letters }})</span>
+                                    <span id="extra-charge-info">Extra Charge: ₹0</span>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        {% if product.enable_photo_upload %}
+                            <div class="mb-4 border-bottom border-white pb-4">
+                                <label class="form-label d-block mb-3 fw-bold">
+                                    <i class="fa-solid fa-camera text-primary me-2"></i> Upload Photo <span class="text-danger">*</span>
+                                </label>
+                                <input type="file" name="custom_images" id="custom_images" multiple accept="image/*" required class="form-control border-accent py-2 shadow-sm rounded-3" style="background:#fff;">
+                                <p class="text-muted small mt-2 mb-0">
+                                    <i class="fa-solid fa-cloud-arrow-up me-1"></i> You can upload multiple high-quality images (JPG, PNG, WEBP).
+                                </p>
+                            </div>
+                        {% endif %}
+
+                        {% if product.enable_custom_message %}
+                            <div class="mb-4 border-bottom border-white pb-4">
+                                <label class="form-label d-block mb-3 fw-bold">
+                                    <i class="fa-solid fa-comment-dots text-primary me-2"></i> Custom Message <span class="text-secondary">(Optional)</span>
+                                </label>
+                                <textarea name="custom_text" rows="3" placeholder="Enter custom names, dates, or special instructions..." class="form-control border-accent py-3 px-4 shadow-sm rounded-3"></textarea>
+                            </div>
+                        {% endif %}
+
                         {% if product.enable_customization %}
+                            <!-- Keep the old customization UI for compatibility -->
                             <div class="mb-4 border-bottom border-white pb-4">
                                 <label class="form-label d-block mb-3 fw-bold">
                                     <i class="fa-solid fa-wand-magic-sparkles text-primary me-2"></i> 
@@ -76,26 +111,38 @@
                                 
                                 <div class="mb-3">
                                     <label class="form-label small text-secondary">Your Name <span class="text-danger">*</span></label>
-                                    <input type="text" name="customer_name" required placeholder="Enter your full name" class="form-control border-accent py-3 px-4 shadow-sm rounded-3">
+                                    <input type="text" name="customer_name" placeholder="Enter your full name" class="form-control border-accent py-3 px-4 shadow-sm rounded-3">
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label small text-secondary">Custom Message/Text (Optional)</label>
                                     <input type="text" name="custom_text" placeholder="Enter names, dates, or messages..." class="form-control border-accent py-3 px-4 shadow-sm rounded-3">
-                                    <p class="text-secondary small mt-2">
-                                        <i class="fa-solid fa-circle-info me-1"></i> e.g.: "Add 'S & K' initials"
-                                    </p>
                                 </div>
                                 
                                 <div class="mb-0">
                                     <label class="form-label small text-secondary fw-bold">Upload Custom Images (Unlimited)</label>
                                     <input type="file" name="custom_images" multiple accept="image/*" class="form-control border-accent py-2 shadow-sm rounded-3" style="background:#fff;">
-                                    <p class="text-muted small mt-2 mb-0">
-                                        <i class="fa-solid fa-cloud-arrow-up me-1"></i> You can upload multiple high-quality images (JPG, PNG, WEBP).
-                                    </p>
                                 </div>
                             </div>
                         {% endif %}
+
+                        <!-- Price Breakdown -->
+                        <div id="price-breakdown" class="mt-3 mb-4 p-3 bg-white rounded-3 shadow-sm d-none border border-accent">
+                            <h6 class="fw-bold mb-2 text-main small-mobile-text"><i class="fa-solid fa-calculator text-primary me-2"></i> Price Breakdown</h6>
+                            <div class="d-flex justify-content-between small text-secondary mb-1">
+                                <span id="breakdown-base-label">Selected Size Price:</span>
+                                <span id="breakdown-base-val">₹0</span>
+                            </div>
+                            <div class="d-flex justify-content-between small text-secondary mb-1">
+                                <span>Extra Letters:</span>
+                                <span id="breakdown-extra-val">₹0</span>
+                            </div>
+                            <hr class="my-2">
+                            <div class="d-flex justify-content-between fw-bold text-main">
+                                <span>Total:</span>
+                                <span id="breakdown-total-val">₹0</span>
+                            </div>
+                        </div>
 
                         <!-- Gift Option -->
                         <div class="mb-4 border-bottom border-white pb-4">
@@ -262,30 +309,111 @@
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const sizeInputs = document.querySelectorAll('input[name="size_id"]');
+        const customNameInput = document.getElementById('custom_name');
+        const letterCountInfo = document.getElementById('letter-count-info');
+        const extraChargeInfo = document.getElementById('extra-charge-info');
+        
         const priceDisplay = document.getElementById('dynamic-price');
         
-        // If there are sizes and one is selected by default, update price
-        const checkedInput = document.querySelector('input[name="size_id"]:checked');
-        if(checkedInput) {
-            priceDisplay.textContent = '₹' + checkedInput.getAttribute('data-price');
+        // Price breakdown elements
+        const breakdownDiv = document.getElementById('price-breakdown');
+        const breakdownBaseLabel = document.getElementById('breakdown-base-label');
+        const breakdownBaseVal = document.getElementById('breakdown-base-val');
+        const breakdownExtraVal = document.getElementById('breakdown-extra-val');
+        const breakdownTotalVal = document.getElementById('breakdown-total-val');
+
+        // Config variables from django
+        const productBasePrice = parseFloat("{{ product.price }}") || 0;
+        const extraPricePerLetter = parseFloat("{{ product.extra_letter_price|default:40 }}") || 0;
+        const includedLetters = parseInt("{{ product.included_letters|default:5 }}") || 0;
+        const enableNamePricing = "{{ product.enable_name_pricing|yesno:'true,false' }}" === "true";
+        const enableSizeSelection = "{{ product.enable_size_selection|yesno:'true,false' }}" === "true";
+
+        function updatePrice() {
+            let basePrice = productBasePrice;
+
+            // 1. Size Pricing
+            if (enableSizeSelection && sizeInputs.length > 0) {
+                const checkedSize = document.querySelector('input[name="size_id"]:checked');
+                if (checkedSize) {
+                    basePrice = parseFloat(checkedSize.getAttribute('data-price')) || 0;
+                }
+            }
+
+            let extraCharge = 0;
+            let letterCount = 0;
+
+            // 2. Letter Pricing
+            if (enableNamePricing && customNameInput) {
+                const nameVal = customNameInput.value.replace(/\s+/g, '');
+                letterCount = nameVal.length;
+                const extraLetters = Math.max(0, letterCount - includedLetters);
+                extraCharge = extraLetters * extraPricePerLetter;
+
+                if (letterCountInfo) {
+                    letterCountInfo.textContent = `Letters: ${letterCount} (Included: ${includedLetters})`;
+                }
+                if (extraChargeInfo) {
+                    extraChargeInfo.textContent = `Extra Charge: ₹${extraCharge}`;
+                }
+            }
+
+            const finalPrice = basePrice + extraCharge;
+
+            // Update main display
+            if (priceDisplay) {
+                priceDisplay.textContent = '₹' + finalPrice;
+            }
+
+            // 3. Breakdown display
+            if (breakdownDiv) {
+                if (enableNamePricing || (enableSizeSelection && sizeInputs.length > 0)) {
+                    breakdownDiv.classList.remove('d-none');
+                    if (breakdownBaseLabel) {
+                        breakdownBaseLabel.textContent = enableSizeSelection ? "Selected Size Price:" : "Base Price:";
+                    }
+                    if (breakdownBaseVal) breakdownBaseVal.textContent = '₹' + basePrice;
+                    if (breakdownExtraVal) breakdownExtraVal.textContent = '₹' + extraCharge;
+                    if (breakdownTotalVal) breakdownTotalVal.textContent = '₹' + finalPrice;
+                } else {
+                    breakdownDiv.classList.add('d-none');
+                }
+            }
         }
 
+        // Add event listeners
         sizeInputs.forEach(input => {
-            input.addEventListener('change', function () {
-                if (this.checked) {
-                    priceDisplay.textContent = '₹' + this.getAttribute('data-price');
-                }
-            });
+            input.addEventListener('change', updatePrice);
         });
+
+        if (customNameInput) {
+            customNameInput.addEventListener('input', updatePrice);
+        }
+
+        // Initialize price display
+        updatePrice();
         
-        // Form Validation for size
+        // Form Validation
         const form = document.querySelector('form');
         form.addEventListener('submit', function(e) {
-            if (sizeInputs.length > 0) {
+            // Validate size selection if enabled
+            if (enableSizeSelection && sizeInputs.length > 0) {
                 const isSelected = document.querySelector('input[name="size_id"]:checked');
                 if (!isSelected) {
                     e.preventDefault();
                     alert("Please select size");
+                    return;
+                }
+            }
+
+            // Validate name pricing input if enabled (and required)
+            if (enableNamePricing && customNameInput) {
+                const nameVal = customNameInput.value.trim();
+                if (nameVal === "") {
+                    e.preventDefault();
+                    alert("Please enter the name.");
+                    customNameInput.focus();
+                    return;
                 }
             }
         });
