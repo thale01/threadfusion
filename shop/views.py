@@ -3,7 +3,7 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Category, Product, Cart, CartItem, Order, OrderItem, Address, SocialPost, Review, Wishlist, Coupon, CustomImage, Testimonial, BusinessSettings
+from .models import Category, Product, Cart, CartItem, Order, OrderItem, Address, SocialPost, Review, Wishlist, Coupon, CustomImage, Testimonial, BusinessSettings, ProductClipOption, ProductAddonOption
 from django.db.models import Q, Avg, Sum, Count
 from django.http import HttpResponse
 from reportlab.pdfgen import canvas
@@ -157,6 +157,7 @@ def add_to_cart(request):
         customization = request.POST.get('custom_text')
         customer_name = request.POST.get('customer_name')
         images = request.FILES.getlist('custom_images')
+        buy_now_flag = request.POST.get('buy_now') == 'true'
         
         product = get_object_or_404(Product, id=product_id)
         cart = get_or_create_cart(request)
@@ -171,38 +172,82 @@ def add_to_cart(request):
         price_override = None
         base_price = product.price
 
-        if product.enable_size_selection:
-            if size_id:
-                from .models import ProductSize
-                try:
-                    ps = ProductSize.objects.get(id=size_id, product=product)
-                    size_str = ps.size
-                    base_price = ps.price
-                    price_override = base_price
-                except ProductSize.DoesNotExist:
-                    pass
+        # 1. Size Pricing & Description
+        if product.enable_size_selection and size_id:
+            try:
+                ps = ProductSize.objects.get(id=size_id, product=product)
+                size_str = ps.size
+                base_price = ps.price
+            except ProductSize.DoesNotExist:
+                pass
 
+        # 2. Letter Pricing
         custom_name = None
         letter_count = None
-        extra_letter_charges = None
-
+        extra_letter_charges = 0
         if product.enable_name_pricing:
             custom_name = request.POST.get('custom_name', '').strip()
-            # Clean and get length of the name
             cleaned_name = custom_name.replace(" ", "")
             letter_count = len(cleaned_name)
             if letter_count > product.included_letters:
                 extra_letter_charges = (letter_count - product.included_letters) * product.extra_letter_price
+
+        # 3. With/Without Photo Price
+        selected_photo_option_str = None
+        photo_charge = 0
+        if product.enable_photo_option:
+            photo_option = request.POST.get('photo_option', product.photo_option_default)
+            if photo_option == 'with':
+                selected_photo_option_str = "With Photo"
+                photo_charge = product.photo_option_with_price
             else:
-                extra_letter_charges = 0
-            price_override = int(base_price) + int(extra_letter_charges)
-        elif product.enable_size_selection and size_str:
-            # Set price override to selected size price even if name pricing is disabled
-            price_override = int(base_price)
-            
+                selected_photo_option_str = "Without Photo"
+                photo_charge = product.photo_option_without_price
+
+        # 4. Clip Options
+        selected_clip_option_str = None
+        clip_charge = 0
+        if product.enable_clip_option:
+            clip_id = request.POST.get('clip_option')
+            if clip_id:
+                try:
+                    clip_opt = ProductClipOption.objects.get(id=clip_id, product=product)
+                    selected_clip_option_str = clip_opt.name
+                    clip_charge = clip_opt.additional_price
+                except ProductClipOption.DoesNotExist:
+                    pass
+
+        # 5. Addon Options
+        selected_addons_str = None
+        addon_charge = 0
+        if product.enable_addon_option:
+            addon_ids = request.POST.getlist('addon_options')
+            addons_list = []
+            for a_id in addon_ids:
+                try:
+                    addon_opt = ProductAddonOption.objects.get(id=a_id, product=product)
+                    addons_list.append({
+                        'name': addon_opt.name,
+                        'price': float(addon_opt.additional_price)
+                    })
+                    addon_charge += addon_opt.additional_price
+                except ProductAddonOption.DoesNotExist:
+                    pass
+            if addons_list:
+                import json
+                selected_addons_str = json.dumps(addons_list)
+
+        # 6. LED Backlight
+        led_charge = 0
+        led_option = request.POST.get('led_option') == 'on'
+        if product.enable_led_option and led_option:
+            led_charge = 150
+
+        # Compute Total Price Override
+        price_override = int(base_price + extra_letter_charges + photo_charge + clip_charge + addon_charge + led_charge)
+        
         frame_color = request.POST.get('frame_color')
         thread_color = request.POST.get('thread_color')
-        led_option = request.POST.get('led_option') == 'on'
 
         cart_item = CartItem.objects.create(
             cart=cart, 
@@ -217,23 +262,40 @@ def add_to_cart(request):
             extra_letter_charges=extra_letter_charges,
             frame_color=frame_color,
             thread_color=thread_color,
-            led_option=led_option
+            led_option=led_option,
+            selected_photo_option=selected_photo_option_str,
+            selected_clip_option=selected_clip_option_str,
+            selected_addons=selected_addons_str
         )
         
-        # Save multiple images to CustomImage linked to CartItem
-        for img in images:
-            CustomImage.objects.create(cart_item=cart_item, image=img)
+        # Save multiple images in reordered index sequence
+        for index, img in enumerate(images):
+            CustomImage.objects.create(
+                cart_item=cart_item, 
+                image=img, 
+                order_index=index,
+                original_name=img.name
+            )
         
-        # Gift option
+        # Gift Option (if enabled and requested)
         is_gift = request.POST.get('is_gift') == 'on'
         gift_message = request.POST.get('gift_message', '')
         
-        if is_gift:
+        if product.enable_gift_option and is_gift:
             cart.is_gift = True
             cart.gift_message = gift_message
             cart.save()
 
         messages.success(request, f"✔ {product.name} added to cart.")
+        
+        # Check if AJAX request to return JSON response
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.accepts('application/json'):
+            from django.http import JsonResponse
+            redirect_url = '/checkout/' if buy_now_flag else '/cart/'
+            return JsonResponse({'status': 'success', 'redirect_url': redirect_url})
+            
+        if buy_now_flag:
+            return redirect('checkout')
         return redirect('cart')
     
     return redirect('product_list')
@@ -301,7 +363,10 @@ def checkout(request):
                 extra_letter_charges=item.extra_letter_charges,
                 frame_color=item.frame_color,
                 thread_color=item.thread_color,
-                led_option=item.led_option
+                led_option=item.led_option,
+                selected_photo_option=item.selected_photo_option,
+                selected_clip_option=item.selected_clip_option,
+                selected_addons=item.selected_addons
             )
             
             # Move and rename CustomImages from CartItem to Order
@@ -420,6 +485,24 @@ def generate_invoice(request, order_id):
                 product_desc += f" ({item.product_size})"
             if item.custom_name:
                 product_desc += f"<br/><font size='8' color='{mauve}'>Name: {item.custom_name}</font>"
+            if item.selected_photo_option:
+                product_desc += f"<br/><font size='8' color='{mauve}'>Option: {item.selected_photo_option}</font>"
+            if item.selected_clip_option:
+                product_desc += f"<br/><font size='8' color='{mauve}'>Clips: {item.selected_clip_option}</font>"
+            if item.selected_addons:
+                import json
+                try:
+                    addons = json.loads(item.selected_addons)
+                    addons_names = [a['name'] for a in addons]
+                    product_desc += f"<br/><font size='8' color='{mauve}'>Addons: {', '.join(addons_names)}</font>"
+                except Exception:
+                    pass
+            if item.frame_color:
+                product_desc += f"<br/><font size='8' color='{mauve}'>Frame: {item.frame_color}</font>"
+            if item.thread_color:
+                product_desc += f"<br/><font size='8' color='{mauve}'>Thread: {item.thread_color}</font>"
+            if item.led_option:
+                product_desc += f"<br/><font size='8' color='{mauve}'>LED: Yes</font>"
             if item.customization_text:
                 product_desc += f"<br/><font size='8' color='{mauve}'>Note: {item.customization_text}</font>"
             
@@ -739,15 +822,23 @@ class ProductForm(forms.ModelForm):
             'category', 'name', 'description', 'price', 'original_price', 
             'image', 'external_image_url', 'available', 'is_featured',
             'enable_customization', 'customization_label', 
-            'enable_size_selection', 'enable_name_pricing', 
+            'enable_size_selection', 'enable_size_description', 'enable_name_pricing', 
             'enable_photo_upload', 'enable_custom_message', 
             'enable_gift_option', 'enable_thread_color', 
             'enable_frame_color', 'enable_led_option',
+            'enable_photo_option', 'enable_clip_option', 'enable_addon_option',
+            'photo_option_with_price', 'photo_option_without_price',
+            'photo_option_description_with', 'photo_option_description_without',
+            'photo_option_default',
+            'photo_upload_required', 'photo_upload_min', 'photo_upload_max',
+            'photo_upload_max_size', 'photo_upload_allowed_formats',
             'included_letters', 'extra_letter_price',
             'is_bestseller', 'is_new_arrival'
         ]
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4}),
+            'photo_option_description_with': forms.Textarea(attrs={'rows': 2}),
+            'photo_option_description_without': forms.Textarea(attrs={'rows': 2}),
         }
 
 @admin_required
@@ -936,3 +1027,122 @@ def customer_dashboard(request):
         'reviews': reviews,
     }
     return render(request, 'dashboard/home.html', context)
+
+# ----------------- CUSTOM ADMIN DASHBOARD SUB-RESOURCES VIEWS -----------------
+
+@admin_required
+def admin_product_size_save(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    if request.method == 'POST':
+        size_id = request.POST.get('size_id')
+        size_name = request.POST.get('size')
+        price = request.POST.get('price')
+        description = request.POST.get('description', '')
+        
+        if size_id:
+            size_obj = get_object_or_404(ProductSize, id=size_id, product=product)
+            size_obj.size = size_name
+            size_obj.price = price
+            size_obj.description = description
+            size_obj.save()
+            messages.success(request, f"Size {size_name} updated successfully.")
+        else:
+            ProductSize.objects.create(
+                product=product,
+                size=size_name,
+                price=price,
+                description=description
+            )
+            messages.success(request, f"Size {size_name} added successfully.")
+            
+    return redirect('admin_product_edit', product_id=product.id)
+
+@admin_required
+def admin_product_size_delete(request, product_id, size_id):
+    product = get_object_or_404(Product, id=product_id)
+    size_obj = get_object_or_404(ProductSize, id=size_id, product=product)
+    size_obj.delete()
+    messages.success(request, "Size deleted successfully.")
+    return redirect('admin_product_edit', product_id=product.id)
+
+@admin_required
+def admin_product_clip_save(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    if request.method == 'POST':
+        clip_id = request.POST.get('clip_id')
+        name = request.POST.get('name')
+        additional_price = request.POST.get('additional_price', 0.00)
+        description = request.POST.get('description', '')
+        enabled = request.POST.get('enabled') == 'on'
+        is_default = request.POST.get('is_default') == 'on'
+        
+        if is_default:
+            product.clip_options.filter(is_default=True).update(is_default=False)
+
+        if clip_id:
+            clip_obj = get_object_or_404(ProductClipOption, id=clip_id, product=product)
+            clip_obj.name = name
+            clip_obj.additional_price = additional_price
+            clip_obj.description = description
+            clip_obj.enabled = enabled
+            clip_obj.is_default = is_default
+            clip_obj.save()
+            messages.success(request, f"Clip option {name} updated successfully.")
+        else:
+            ProductClipOption.objects.create(
+                product=product,
+                name=name,
+                additional_price=additional_price,
+                description=description,
+                enabled=enabled,
+                is_default=is_default
+            )
+            messages.success(request, f"Clip option {name} added successfully.")
+            
+    return redirect('admin_product_edit', product_id=product.id)
+
+@admin_required
+def admin_product_clip_delete(request, product_id, clip_id):
+    product = get_object_or_404(Product, id=product_id)
+    clip_obj = get_object_or_404(ProductClipOption, id=clip_id, product=product)
+    clip_obj.delete()
+    messages.success(request, "Clip option deleted successfully.")
+    return redirect('admin_product_edit', product_id=product.id)
+
+@admin_required
+def admin_product_addon_save(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    if request.method == 'POST':
+        addon_id = request.POST.get('addon_id')
+        name = request.POST.get('name')
+        additional_price = request.POST.get('additional_price', 0.00)
+        description = request.POST.get('description', '')
+        enabled = request.POST.get('enabled') == 'on'
+        
+        if addon_id:
+            addon_obj = get_object_or_404(ProductAddonOption, id=addon_id, product=product)
+            addon_obj.name = name
+            addon_obj.additional_price = additional_price
+            addon_obj.description = description
+            addon_obj.enabled = enabled
+            addon_obj.save()
+            messages.success(request, f"Addon option {name} updated successfully.")
+        else:
+            ProductAddonOption.objects.create(
+                product=product,
+                name=name,
+                additional_price=additional_price,
+                description=description,
+                enabled=enabled
+            )
+            messages.success(request, f"Addon option {name} added successfully.")
+            
+    return redirect('admin_product_edit', product_id=product.id)
+
+@admin_required
+def admin_product_addon_delete(request, product_id, addon_id):
+    product = get_object_or_404(Product, id=product_id)
+    addon_obj = get_object_or_404(ProductAddonOption, id=addon_id, product=product)
+    addon_obj.delete()
+    messages.success(request, "Addon option deleted successfully.")
+    return redirect('admin_product_edit', product_id=product.id)

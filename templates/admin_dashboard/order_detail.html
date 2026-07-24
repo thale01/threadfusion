@@ -91,6 +91,28 @@
                                     <span class="small text-success"><i class="fa-solid fa-lightbulb me-1"></i>Included</span>
                                 </div>
                                 {% endif %}
+                                {% if item.selected_photo_option %}
+                                <div class="col-sm-6">
+                                    <span class="x-small text-secondary fw-bold d-block">PHOTO OPTION</span>
+                                    <span class="small text-main">{{ item.selected_photo_option }}</span>
+                                </div>
+                                {% endif %}
+                                {% if item.selected_clip_option %}
+                                <div class="col-sm-6">
+                                    <span class="x-small text-secondary fw-bold d-block">CLIPS SELECTION</span>
+                                    <span class="small text-main">{{ item.selected_clip_option }}</span>
+                                </div>
+                                {% endif %}
+                                {% if item.selected_addons %}
+                                <div class="col-sm-6">
+                                    <span class="x-small text-secondary fw-bold d-block">SELECTED ADD-ONS</span>
+                                    <span class="small text-main">
+                                        {% for addon in item.get_addons_list %}
+                                            {{ addon.name }}{% if not forloop.last %}, {% endif %}
+                                        {% endfor %}
+                                    </span>
+                                </div>
+                                {% endif %}
                                 {% if item.customization_text %}
                                 <div class="col-12">
                                     <span class="x-small text-secondary fw-bold d-block">CUSTOM TEXT / NOTES</span>
@@ -126,13 +148,23 @@
                 </div>
                 
                 <div class="row g-3">
-                    {% for img in order.images.all %}
-                    <div class="col-6 col-sm-4 col-md-3">
-                        <div class="position-relative border rounded-3 overflow-hidden shadow-sm hover-lift">
-                            <img src="{{ img.image.url }}" class="img-fluid w-100 object-fit-cover" style="aspect-ratio: 1/1;" alt="Reference Photo">
-                            <a href="{{ img.image.url }}" download class="btn btn-dark btn-sm position-absolute bottom-0 end-0 m-2 rounded-circle" style="width: 32px; height: 32px; padding:0; display:flex; align-items:center; justify-content:center;">
-                                <i class="fa-solid fa-download"></i>
-                            </a>
+                    {% for img in order.images.all|dictsort:"order_index" %}
+                    <div class="col-12 col-sm-6 col-md-4">
+                        <div class="card border rounded-3 overflow-hidden shadow-sm h-100 bg-light bg-opacity-30">
+                            <div class="position-relative" style="height: 160px;">
+                                <img src="{{ img.image.url }}" class="w-100 h-100 object-fit-cover" alt="Custom Image">
+                                <a href="{{ img.image.url }}" download class="btn btn-dark btn-sm position-absolute bottom-0 end-0 m-2 rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" title="Download image">
+                                    <i class="fa-solid fa-download"></i>
+                                </a>
+                            </div>
+                            <div class="card-body p-2 bg-white" style="font-size: 11px; line-height: 1.4;">
+                                <div class="mb-1 text-truncate" title="{{ img.original_name|default:img.image.name }}">
+                                    <span class="text-secondary fw-semibold">Original:</span> {{ img.original_name|default:"-" }}
+                                </div>
+                                <div class="text-truncate" title="{{ img.image.name }}">
+                                    <span class="text-secondary fw-semibold">Saved:</span> {{ img.image.name }}
+                                </div>
+                            </div>
                         </div>
                     </div>
                     {% empty %}

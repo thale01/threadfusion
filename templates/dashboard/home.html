@@ -83,6 +83,14 @@
                                                 {{ item.quantity }}x {{ item.product.name }}
                                                 {% if item.product_size %}({{ item.product_size }}){% endif %}
                                                 {% if item.custom_name %} - Custom Name: "{{ item.custom_name }}"{% endif %}
+                                                {% if item.selected_photo_option %} - Option: {{ item.selected_photo_option }}{% endif %}
+                                                {% if item.selected_clip_option %} - Clips: {{ item.selected_clip_option }}{% endif %}
+                                                {% if item.selected_addons %}
+                                                    - Add-ons: 
+                                                    {% for addon in item.get_addons_list %}
+                                                        {{ addon.name }}{% if not forloop.last %}, {% endif %}
+                                                    {% endfor %}
+                                                {% endif %}
                                             </li>
                                             {% endfor %}
                                         </ul>

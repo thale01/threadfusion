@@ -190,10 +190,31 @@
                                 <div>
                                     <h6 class="small fw-bold mb-0">{{ item.product.name }}{% if item.product_size %} ({{ item.product_size }}){% endif %}</h6>
                                     {% if item.custom_name %}
-                                        <p class="text-muted mb-0" style="font-size: 0.65rem;"><i class="fa-solid fa-signature"></i> Name: {{ item.custom_name }}</p>
+                                        <p class="text-muted mb-0" style="font-size: 0.7rem;"><i class="fa-solid fa-signature"></i> Name: {{ item.custom_name }}</p>
+                                    {% endif %}
+                                    {% if item.selected_photo_option %}
+                                        <p class="text-muted mb-0" style="font-size: 0.7rem;"><i class="fa-solid fa-camera"></i> Option: {{ item.selected_photo_option }}</p>
+                                    {% endif %}
+                                    {% if item.selected_clip_option %}
+                                        <p class="text-muted mb-0" style="font-size: 0.7rem;"><i class="fa-solid fa-paperclip"></i> Clips: {{ item.selected_clip_option }}</p>
+                                    {% endif %}
+                                    {% for addon in item.get_addons_list %}
+                                        <p class="text-muted mb-0" style="font-size: 0.7rem;"><i class="fa-solid fa-circle-plus"></i> Addon: {{ addon.name }}</p>
+                                    {% endfor %}
+                                    {% if item.thread_color %}
+                                        <p class="text-muted mb-0" style="font-size: 0.7rem;"><i class="fa-solid fa-palette"></i> Thread: {{ item.thread_color }}</p>
+                                    {% endif %}
+                                    {% if item.frame_color %}
+                                        <p class="text-muted mb-0" style="font-size: 0.7rem;"><i class="fa-solid fa-border-all"></i> Frame: {{ item.frame_color }}</p>
+                                    {% endif %}
+                                    {% if item.led_option %}
+                                        <p class="text-muted mb-0" style="font-size: 0.7rem;"><i class="fa-solid fa-lightbulb"></i> LED Lights Option</p>
                                     {% endif %}
                                     {% if item.customization_text %}
-                                        <p class="text-muted mb-0" style="font-size: 0.65rem;">{{ item.customization_text }}</p>
+                                        <p class="text-muted mb-0" style="font-size: 0.7rem;"><i class="fa-solid fa-comment"></i> Note: {{ item.customization_text }}</p>
+                                    {% endif %}
+                                    {% if item.images.all %}
+                                        <p class="text-muted mb-0" style="font-size: 0.7rem;"><i class="fa-solid fa-images"></i> {{ item.images.count }} Reference Photo(s)</p>
                                     {% endif %}
                                 </div>
                             </div>

@@ -51,4 +51,13 @@ urlpatterns = [
 
     # Customer Dashboard Routes
     path('dashboard/', views.customer_dashboard, name='customer_dashboard'),
+    path('buy-now/', views.add_to_cart, name='buy_now'),
+
+    # Admin Product Sub-resources Managers
+    path('admin-dashboard/products/<int:product_id>/sizes/save/', views.admin_product_size_save, name='admin_product_size_save'),
+    path('admin-dashboard/products/<int:product_id>/sizes/delete/<int:size_id>/', views.admin_product_size_delete, name='admin_product_size_delete'),
+    path('admin-dashboard/products/<int:product_id>/clips/save/', views.admin_product_clip_save, name='admin_product_clip_save'),
+    path('admin-dashboard/products/<int:product_id>/clips/delete/<int:clip_id>/', views.admin_product_clip_delete, name='admin_product_clip_delete'),
+    path('admin-dashboard/products/<int:product_id>/addons/save/', views.admin_product_addon_save, name='admin_product_addon_save'),
+    path('admin-dashboard/products/<int:product_id>/addons/delete/<int:addon_id>/', views.admin_product_addon_delete, name='admin_product_addon_delete'),
 ]

@@ -39,28 +39,48 @@
                                                 <p class="text-secondary small mb-1">₹{% if item.price_override %}{{ item.price_override }}{% else %}{{ item.product.price }}{% endif %} each</p>
                                                 <div class="d-flex flex-wrap gap-2 mt-2">
                                                     {% if item.custom_name %}
-                                                        <span class="badge bg-accent text-main small fw-normal py-1 px-2">
+                                                        <span class="badge bg-accent text-main small fw-normal py-1 px-2 border border-white">
                                                             <i class="fa-solid fa-signature me-1"></i> Name: {{ item.custom_name }}
                                                         </span>
                                                     {% endif %}
-                                                    {% if item.letter_count is not None %}
-                                                        <span class="badge bg-accent text-main small fw-normal py-1 px-2">
-                                                            <i class="fa-solid fa-calculator me-1"></i> Letters: {{ item.letter_count }}
+                                                    {% if item.selected_photo_option %}
+                                                        <span class="badge bg-accent text-main small fw-normal py-1 px-2 border border-white">
+                                                            <i class="fa-solid fa-camera me-1"></i> {{ item.selected_photo_option }}
                                                         </span>
                                                     {% endif %}
-                                                    {% if item.extra_letter_charges %}
-                                                        <span class="badge bg-accent text-main small fw-normal py-1 px-2">
-                                                            <i class="fa-solid fa-indian-rupee-sign me-1"></i> Extra: ₹{{ item.extra_letter_charges }}
+                                                    {% if item.selected_clip_option %}
+                                                        <span class="badge bg-accent text-main small fw-normal py-1 px-2 border border-white">
+                                                            <i class="fa-solid fa-paperclip me-1"></i> Clips: {{ item.selected_clip_option }}
+                                                        </span>
+                                                    {% endif %}
+                                                    {% for addon in item.get_addons_list %}
+                                                        <span class="badge bg-accent text-main small fw-normal py-1 px-2 border border-white">
+                                                            <i class="fa-solid fa-circle-plus me-1"></i> Addon: {{ addon.name }}
+                                                        </span>
+                                                    {% endfor %}
+                                                    {% if item.thread_color %}
+                                                        <span class="badge bg-accent text-main small fw-normal py-1 px-2 border border-white">
+                                                            <i class="fa-solid fa-palette me-1"></i> Thread: {{ item.thread_color }}
+                                                        </span>
+                                                    {% endif %}
+                                                    {% if item.frame_color %}
+                                                        <span class="badge bg-accent text-main small fw-normal py-1 px-2 border border-white">
+                                                            <i class="fa-solid fa-border-all me-1"></i> Frame: {{ item.frame_color }}
+                                                        </span>
+                                                    {% endif %}
+                                                    {% if item.led_option %}
+                                                        <span class="badge bg-accent text-main small fw-normal py-1 px-2 border border-white">
+                                                            <i class="fa-solid fa-lightbulb me-1"></i> LED Light
                                                         </span>
                                                     {% endif %}
                                                     {% if item.customization_text %}
-                                                        <span class="badge bg-accent text-main small fw-normal py-1 px-2">
-                                                            <i class="fa-solid fa-pen-nib me-1"></i> {{ item.customization_text }}
+                                                        <span class="badge bg-accent text-main small fw-normal py-1 px-2 border border-white">
+                                                            <i class="fa-solid fa-comment me-1"></i> Message: {{ item.customization_text }}
                                                         </span>
                                                     {% endif %}
-                                                    {% if item.customization_image %}
-                                                        <span class="badge bg-accent text-main small fw-normal py-1 px-2">
-                                                            <i class="fa-solid fa-image me-1"></i> Image Attached
+                                                    {% if item.images.all %}
+                                                        <span class="badge bg-accent text-main small fw-normal py-1 px-2 border border-white">
+                                                            <i class="fa-solid fa-images me-1"></i> {{ item.images.count }} Photo(s)
                                                         </span>
                                                     {% endif %}
                                                 </div>
@@ -118,24 +138,44 @@
                                                 <i class="fa-solid fa-signature me-1"></i> Name: {{ item.custom_name }}
                                             </div>
                                         {% endif %}
-                                        {% if item.letter_count is not None %}
+                                        {% if item.selected_photo_option %}
                                             <div class="small bg-accent p-2 rounded text-main border border-white">
-                                                <i class="fa-solid fa-calculator me-1"></i> Letters: {{ item.letter_count }}
+                                                <i class="fa-solid fa-camera me-1"></i> Option: {{ item.selected_photo_option }}
                                             </div>
                                         {% endif %}
-                                        {% if item.extra_letter_charges %}
+                                        {% if item.selected_clip_option %}
                                             <div class="small bg-accent p-2 rounded text-main border border-white">
-                                                <i class="fa-solid fa-indian-rupee-sign me-1"></i> Extra Cost: ₹{{ item.extra_letter_charges }}
+                                                <i class="fa-solid fa-paperclip me-1"></i> Clips: {{ item.selected_clip_option }}
+                                            </div>
+                                        {% endif %}
+                                        {% for addon in item.get_addons_list %}
+                                            <div class="small bg-accent p-2 rounded text-main border border-white">
+                                                <i class="fa-solid fa-circle-plus me-1"></i> Addon: {{ addon.name }}
+                                            </div>
+                                        {% endfor %}
+                                        {% if item.thread_color %}
+                                            <div class="small bg-accent p-2 rounded text-main border border-white">
+                                                <i class="fa-solid fa-palette me-1"></i> Thread: {{ item.thread_color }}
+                                            </div>
+                                        {% endif %}
+                                        {% if item.frame_color %}
+                                            <div class="small bg-accent p-2 rounded text-main border border-white">
+                                                <i class="fa-solid fa-border-all me-1"></i> Frame: {{ item.frame_color }}
+                                            </div>
+                                        {% endif %}
+                                        {% if item.led_option %}
+                                            <div class="small bg-accent p-2 rounded text-main border border-white">
+                                                <i class="fa-solid fa-lightbulb me-1"></i> LED Light Option
                                             </div>
                                         {% endif %}
                                         {% if item.customization_text %}
                                             <div class="small bg-accent p-2 rounded text-main border border-white">
-                                                <i class="fa-solid fa-pen-nib me-1"></i> {{ item.customization_text }}
+                                                <i class="fa-solid fa-comment me-1"></i> Message: {{ item.customization_text }}
                                             </div>
                                         {% endif %}
-                                        {% if item.customization_image %}
+                                        {% if item.images.all %}
                                             <div class="small bg-accent p-2 rounded text-main border border-white">
-                                                <i class="fa-solid fa-image me-1"></i> Reference Image Attached
+                                                <i class="fa-solid fa-images me-1"></i> {{ item.images.count }} Reference Photo(s)
                                             </div>
                                         {% endif %}
                                     </div>

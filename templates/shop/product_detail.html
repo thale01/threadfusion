@@ -52,10 +52,11 @@
                 <p class="lead text-secondary mb-5" style="line-height: 1.8;">{{ product.description }}</p>
 
                 <div class="bg-accent bg-opacity-30 p-4 rounded-4 mb-5 border border-white shadow-sm">
-                    <form action="{% url 'add_to_cart' %}" method="POST" enctype="multipart/form-data">
+                    <form id="customization-form" method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
                         <input type="hidden" name="product_id" value="{{ product.id }}">
                         
+                        <!-- 1. Size Selection -->
                         {% if product.enable_size_selection and product.sizes.all %}
                             <div class="mb-4 border-bottom border-white pb-4">
                                 <label class="form-label d-block mb-3 fw-bold">
@@ -63,13 +64,100 @@
                                 </label>
                                 <div class="d-flex flex-wrap gap-2" id="size-selector">
                                     {% for size in product.sizes.all %}
-                                        <input type="radio" class="btn-check" name="size_id" id="size_{{ size.id }}" value="{{ size.id }}" data-price="{{ size.price }}" required {% if forloop.first %}checked{% endif %}>
+                                        <input type="radio" class="btn-check size-radio" name="size_id" id="size_{{ size.id }}" value="{{ size.id }}" data-price="{{ size.price }}" data-size-name="{{ size.size }}" data-desc="{{ size.description|default:'' }}" required {% if forloop.first %}checked{% endif %}>
                                         <label class="btn btn-outline-primary rounded-pill px-4" for="size_{{ size.id }}">{{ size.size }}</label>
+                                    {% endfor %}
+                                </div>
+                                {% if product.enable_size_description %}
+                                    <div id="size-description-container" class="mt-2 small text-secondary italic" style="font-size: 12px;"></div>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+
+                        <!-- 2. Photo Option (With/Without) -->
+                        {% if product.enable_photo_option %}
+                            <div class="mb-4 border-bottom border-white pb-4">
+                                <label class="form-label d-block mb-3 fw-bold">
+                                    <i class="fa-solid fa-camera text-primary me-2"></i> Select Photo Option <span class="text-danger">*</span>
+                                </label>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <input type="radio" class="btn-check photo-option-radio" name="photo_option" id="photo_with" value="with" {% if product.photo_option_default == 'with' %}checked{% endif %} data-price="{{ product.photo_option_with_price }}" data-desc="{{ product.photo_option_description_with|default:'' }}">
+                                        <label class="btn btn-outline-primary w-100 rounded-3 p-3 text-start h-100" for="photo_with">
+                                            <span class="fw-bold d-block">With Photo</span>
+                                            <span class="small text-secondary d-block mt-1">+₹{{ product.photo_option_with_price }}</span>
+                                            {% if product.photo_option_description_with %}
+                                                <span class="x-small text-muted d-block mt-2" style="font-size:11px; line-height:1.4;">{{ product.photo_option_description_with }}</span>
+                                            {% endif %}
+                                        </label>
+                                    </div>
+                                    <div class="col-6">
+                                        <input type="radio" class="btn-check photo-option-radio" name="photo_option" id="photo_without" value="without" {% if product.photo_option_default == 'without' %}checked{% endif %} data-price="{{ product.photo_option_without_price }}" data-desc="{{ product.photo_option_description_without|default:'' }}">
+                                        <label class="btn btn-outline-primary w-100 rounded-3 p-3 text-start h-100" for="photo_without">
+                                            <span class="fw-bold d-block">Without Photo</span>
+                                            <span class="small text-secondary d-block mt-1">+₹{{ product.photo_option_without_price }}</span>
+                                            {% if product.photo_option_description_without %}
+                                                <span class="x-small text-muted d-block mt-2" style="font-size:11px; line-height:1.4;">{{ product.photo_option_description_without }}</span>
+                                            {% endif %}
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <!-- 3. Clips Option -->
+                        {% if product.enable_clip_option and product.clip_options.all %}
+                            <div class="mb-4 border-bottom border-white pb-4">
+                                <label class="form-label d-block mb-3 fw-bold">
+                                    <i class="fa-solid fa-paperclip text-primary me-2"></i> Select Clip Option <span class="text-danger">*</span>
+                                </label>
+                                <div class="row g-2">
+                                    {% for clip in product.clip_options.all %}
+                                        {% if clip.enabled %}
+                                        <div class="col-6 col-sm-4">
+                                            <input type="radio" class="btn-check clip-option-radio" name="clip_option" id="clip_{{ clip.id }}" value="{{ clip.id }}" data-price="{{ clip.additional_price }}" data-name="{{ clip.name }}" {% if clip.is_default %}checked{% endif %}>
+                                            <label class="btn btn-outline-primary w-100 rounded-3 p-3 text-start h-100" for="clip_{{ clip.id }}">
+                                                <span class="fw-bold d-block small-mobile-text">{{ clip.name }}</span>
+                                                <span class="small text-secondary d-block mt-1">+₹{{ clip.additional_price }}</span>
+                                                {% if clip.description %}
+                                                    <span class="x-small text-muted d-block mt-1" style="font-size:10px; line-height:1.2;">{{ clip.description }}</span>
+                                                {% endif %}
+                                            </label>
+                                        </div>
+                                        {% endif %}
                                     {% endfor %}
                                 </div>
                             </div>
                         {% endif %}
 
+                        <!-- 4. Add-on Options -->
+                        {% if product.enable_addon_option and product.addon_options.all %}
+                            <div class="mb-4 border-bottom border-white pb-4">
+                                <label class="form-label d-block mb-3 fw-bold">
+                                    <i class="fa-solid fa-circle-plus text-primary me-2"></i> Select Add-ons
+                                </label>
+                                <div class="row g-2">
+                                    {% for addon in product.addon_options.all %}
+                                        {% if addon.enabled %}
+                                        <div class="col-12 col-sm-6">
+                                            <input type="checkbox" class="btn-check addon-option-cb" name="addon_options" id="addon_{{ addon.id }}" value="{{ addon.id }}" data-price="{{ addon.additional_price }}" data-name="{{ addon.name }}">
+                                            <label class="btn btn-outline-primary w-100 rounded-3 p-3 text-start h-100" for="addon_{{ addon.id }}">
+                                                <span class="d-flex justify-content-between align-items-center">
+                                                    <span class="fw-bold text-main">{{ addon.name }}</span>
+                                                    <span class="badge bg-secondary font-monospace text-white">+₹{{ addon.additional_price }}</span>
+                                                </span>
+                                                {% if addon.description %}
+                                                    <span class="x-small text-muted d-block mt-1" style="font-size:11px; line-height:1.3;">{{ addon.description }}</span>
+                                                {% endif %}
+                                            </label>
+                                        </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <!-- 5. Name Customization -->
                         {% if product.enable_name_pricing %}
                             <div class="mb-4 border-bottom border-white pb-4">
                                 <label class="form-label d-block mb-3 fw-bold">
@@ -83,33 +171,52 @@
                             </div>
                         {% endif %}
 
+                        <!-- 6. Photo Upload constraints -->
                         {% if product.enable_photo_upload %}
-                            <div class="mb-4 border-bottom border-white pb-4">
+                            <div class="mb-4 border-bottom border-white pb-4" id="photo-upload-container">
                                 <label class="form-label d-block mb-3 fw-bold">
-                                    <i class="fa-solid fa-camera text-primary me-2"></i> Upload Photo <span class="text-danger">*</span>
+                                    <i class="fa-solid fa-images text-primary me-2"></i> Upload Reference Photos {% if product.photo_upload_required %}<span class="text-danger">*</span>{% endif %}
                                 </label>
-                                <input type="file" name="custom_images" id="custom_images" multiple accept="image/*" required class="form-control border-accent py-2 shadow-sm rounded-3" style="background:#fff;">
-                                <p class="text-muted small mt-2 mb-0">
-                                    <i class="fa-solid fa-cloud-arrow-up me-1"></i> You can upload multiple high-quality images (JPG, PNG, WEBP).
-                                </p>
+                                
+                                <!-- Drag & Drop Uploader Area -->
+                                <div id="drag-drop-area" class="border border-dashed border-accent rounded-4 p-4 text-center cursor-pointer bg-white bg-opacity-50 hover-bg-light transition-all position-relative" style="border-width: 2px;">
+                                    <input type="file" id="photo-file-input" multiple accept="image/jpeg,image/jpg,image/png,image/webp" class="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer" style="z-index: 10;">
+                                    <div class="py-3">
+                                        <i class="fa-solid fa-cloud-arrow-up display-5 text-primary mb-3"></i>
+                                        <h6 class="fw-bold text-main mb-1">Drag & Drop Your Photos Here</h6>
+                                        <p class="text-secondary small mb-2">or click to browse from device</p>
+                                        <span class="x-small text-muted d-block">Formats: JPG, JPEG, PNG, WEBP | Max size: {{ product.photo_upload_max_size }} MB per file</span>
+                                        <span class="x-small text-primary fw-bold d-block mt-1">Upload between {{ product.photo_upload_min }}–{{ product.photo_upload_max }} photos</span>
+                                    </div>
+                                </div>
+
+                                <!-- Instant Live Validation Message -->
+                                <div id="upload-validation-msg" class="mt-2 small"></div>
+
+                                <!-- Thumbnail Preview Grid (with sorting and reordering hooks) -->
+                                <div id="preview-container" class="row row-cols-3 row-cols-sm-4 row-cols-md-5 g-2 mt-3" style="min-height: 50px;">
+                                    <!-- Preview items injected by JS -->
+                                </div>
                             </div>
                         {% endif %}
 
+                        <!-- 7. Custom Message -->
                         {% if product.enable_custom_message %}
                             <div class="mb-4 border-bottom border-white pb-4">
                                 <label class="form-label d-block mb-3 fw-bold">
                                     <i class="fa-solid fa-comment-dots text-primary me-2"></i> Custom Message <span class="text-secondary">(Optional)</span>
                                 </label>
-                                <textarea name="custom_text" rows="3" placeholder="Enter custom names, dates, or special instructions..." class="form-control border-accent py-3 px-4 shadow-sm rounded-3"></textarea>
+                                <textarea name="custom_text" id="custom_text_msg" rows="3" placeholder="Enter custom names, dates, or special instructions..." class="form-control border-accent py-3 px-4 shadow-sm rounded-3"></textarea>
                             </div>
                         {% endif %}
 
+                        <!-- 8. Thread Color select -->
                         {% if product.enable_thread_color %}
                             <div class="mb-4 border-bottom border-white pb-4">
                                 <label class="form-label d-block mb-3 fw-bold">
                                     <i class="fa-solid fa-palette text-primary me-2"></i> Select Thread Color <span class="text-danger">*</span>
                                 </label>
-                                <select name="thread_color" required class="form-select border-accent py-3 px-4 shadow-sm rounded-3">
+                                <select name="thread_color" id="thread_color" required class="form-select border-accent py-3 px-4 shadow-sm rounded-3">
                                     <option value="">Choose Thread Color</option>
                                     <option value="Crimson Red">Crimson Red</option>
                                     <option value="Navy Blue">Navy Blue</option>
@@ -122,12 +229,13 @@
                             </div>
                         {% endif %}
 
+                        <!-- 9. Frame Color select -->
                         {% if product.enable_frame_color %}
                             <div class="mb-4 border-bottom border-white pb-4">
                                 <label class="form-label d-block mb-3 fw-bold">
                                     <i class="fa-solid fa-border-all text-primary me-2"></i> Select Frame Color <span class="text-danger">*</span>
                                 </label>
-                                <select name="frame_color" required class="form-select border-accent py-3 px-4 shadow-sm rounded-3">
+                                <select name="frame_color" id="frame_color" required class="form-select border-accent py-3 px-4 shadow-sm rounded-3">
                                     <option value="">Choose Frame Color</option>
                                     <option value="Classic Black">Classic Black</option>
                                     <option value="Oak Wood">Oak Wood</option>
@@ -138,6 +246,7 @@
                             </div>
                         {% endif %}
 
+                        <!-- 10. LED Option switch -->
                         {% if product.enable_led_option %}
                             <div class="mb-4 border-bottom border-white pb-4">
                                 <label class="form-label d-flex align-items-center gap-2 fw-bold cursor-pointer" for="led_option">
@@ -147,54 +256,7 @@
                             </div>
                         {% endif %}
 
-                        {% if product.enable_customization %}
-                            <!-- Keep the old customization UI for compatibility -->
-                            <div class="mb-4 border-bottom border-white pb-4">
-                                <label class="form-label d-block mb-3 fw-bold">
-                                    <i class="fa-solid fa-wand-magic-sparkles text-primary me-2"></i> 
-                                    {{ product.customization_label|default:"Customize Your Artisan Piece" }}
-                                </label>
-                                
-                                <div class="mb-3">
-                                    <label class="form-label small text-secondary">Your Name <span class="text-danger">*</span></label>
-                                    <input type="text" name="customer_name" placeholder="Enter your full name" class="form-control border-accent py-3 px-4 shadow-sm rounded-3">
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label small text-secondary">Custom Message/Text (Optional)</label>
-                                    <input type="text" name="custom_text" placeholder="Enter names, dates, or messages..." class="form-control border-accent py-3 px-4 shadow-sm rounded-3">
-                                </div>
-                                
-                                <div class="mb-0">
-                                    <label class="form-label small text-secondary fw-bold">Upload Custom Images (Unlimited)</label>
-                                    <input type="file" name="custom_images" multiple accept="image/*" class="form-control border-accent py-2 shadow-sm rounded-3" style="background:#fff;">
-                                </div>
-                            </div>
-                        {% endif %}
-
-                        <!-- Price Breakdown -->
-                        <div id="price-breakdown" class="mt-3 mb-4 p-3 bg-white rounded-3 shadow-sm d-none border border-accent">
-                            <h6 class="fw-bold mb-2 text-main small-mobile-text"><i class="fa-solid fa-calculator text-primary me-2"></i> Price Breakdown</h6>
-                            <div class="d-flex justify-content-between small text-secondary mb-1">
-                                <span id="breakdown-base-label">Selected Size Price:</span>
-                                <span id="breakdown-base-val">₹0</span>
-                            </div>
-                            <div class="d-flex justify-content-between small text-secondary mb-1">
-                                <span>Extra Letters:</span>
-                                <span id="breakdown-extra-val">₹0</span>
-                            </div>
-                            <div id="breakdown-led-row" class="d-flex justify-content-between small text-secondary mb-1 d-none">
-                                <span>LED Backlight:</span>
-                                <span id="breakdown-led-val">₹150</span>
-                            </div>
-                            <hr class="my-2">
-                            <div class="d-flex justify-content-between fw-bold text-main">
-                                <span>Total:</span>
-                                <span id="breakdown-total-val">₹0</span>
-                            </div>
-                        </div>
-
-                        <!-- Gift Option -->
+                        <!-- 11. Gift Option -->
                         {% if product.enable_gift_option %}
                         <div class="mb-4 border-bottom border-white pb-4">
                             <label class="form-label d-flex align-items-center gap-2 fw-bold cursor-pointer" for="is_gift">
@@ -203,7 +265,7 @@
                             </label>
                             <div id="gift_message_box" class="mt-3 d-none">
                                 <label class="form-label small text-secondary">Gift Message</label>
-                                <textarea name="gift_message" class="form-control border-accent shadow-sm rounded-3" rows="3" placeholder="Write your heartfelt message here..."></textarea>
+                                <textarea name="gift_message" id="gift_message" class="form-control border-accent shadow-sm rounded-3" rows="3" placeholder="Write your heartfelt message here..."></textarea>
                             </div>
                         </div>
                         {% endif %}
@@ -214,13 +276,48 @@
                             <p class="text-secondary small mb-0"><i class="fa-solid fa-calendar-days text-primary me-1"></i> Production Time: {{ settings.production_time|default:"3–7 Business Days" }}</p>
                         </div>
 
-                        <div class="row g-3">
-                            <div class="col-12">
-                                <button type="submit" class="btn btn-primary btn-lg w-100 py-3 rounded-pill shadow">
-                                    <i class="fa-solid fa-bag-shopping me-2"></i> Add to Cart
-                                </button>
+                        <!-- 12. Live Customization Summary Card -->
+                        <div id="live-customization-summary" class="apple-card mt-4 mb-4 p-4 border border-primary bg-light bg-opacity-40 d-none" style="background-color: rgba(0, 113, 227, 0.03) !important;">
+                            <h5 class="fw-bold text-main mb-3">✨ Your Customization</h5>
+                            
+                            <div class="d-flex flex-column gap-2 border-bottom pb-3 mb-3 small text-secondary" id="summary-items-list" style="font-size:13px; line-height:1.6;">
+                                <!-- Dynamic custom summaries loaded by JS -->
+                            </div>
+                            
+                            <h6 class="fw-bold mb-2 text-main small" style="font-size: 11px; letter-spacing: 0.5px; opacity:0.8;"><i class="fa-solid fa-calculator text-primary me-2"></i> PRICE BREAKDOWN</h6>
+                            <div class="d-flex flex-column gap-1 border-bottom pb-3 mb-3 small text-secondary" id="summary-price-breakdown" style="font-size:13px; line-height:1.6;">
+                                <!-- Dynamic breakdown loaded by JS -->
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-bold text-main">🎉 FINAL PRICE</span>
+                                <span class="h4 fw-bold text-primary mb-0" id="summary-final-price">₹0</span>
                             </div>
                         </div>
+
+                        <!-- 13. Checkout Action Section -->
+                        <div class="mt-4 p-3 bg-white bg-opacity-70 backdrop-blur rounded-4 border shadow-sm">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <span class="x-small text-secondary fw-bold d-block" style="font-size: 10px; letter-spacing: 0.5px;">ESTIMATED TOTAL</span>
+                                    <span class="h3 fw-bold text-primary mb-0 animate-price" id="checkout-total-price">₹0</span>
+                                </div>
+                            </div>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <button type="button" id="btn-add-to-cart" class="btn btn-outline-primary btn-lg w-100 py-3 rounded-pill fw-semibold" style="font-size: 14px;">
+                                        <i class="fa-solid fa-cart-shopping me-1"></i> Add to Cart
+                                    </button>
+                                </div>
+                                <div class="col-6">
+                                    <button type="button" id="btn-buy-now" class="btn btn-primary btn-lg w-100 py-3 rounded-pill fw-semibold shadow-sm animate-price" style="font-size: 14px;">
+                                        <i class="fa-solid fa-bolt me-1"></i> Buy Now
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
                     </form>
                 </div>
 
@@ -362,137 +459,598 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const sizeInputs = document.querySelectorAll('input[name="size_id"]');
+        // Elements selectors
+        const form = document.getElementById('customization-form');
+        const sizeRadios = document.querySelectorAll('.size-radio');
+        const sizeDescContainer = document.getElementById('size-description-container');
+        
+        const photoOptionRadios = document.querySelectorAll('.photo-option-radio');
+        const clipOptionRadios = document.querySelectorAll('.clip-option-radio');
+        const addonCheckboxes = document.querySelectorAll('.addon-option-cb');
+        
         const customNameInput = document.getElementById('custom_name');
         const letterCountInfo = document.getElementById('letter-count-info');
         const extraChargeInfo = document.getElementById('extra-charge-info');
         
-        const priceDisplay = document.getElementById('dynamic-price');
-        
-        // Price breakdown elements
-        const breakdownDiv = document.getElementById('price-breakdown');
-        const breakdownBaseLabel = document.getElementById('breakdown-base-label');
-        const breakdownBaseVal = document.getElementById('breakdown-base-val');
-        const breakdownExtraVal = document.getElementById('breakdown-extra-val');
-        const breakdownTotalVal = document.getElementById('breakdown-total-val');
-
         const ledOptionInput = document.getElementById('led_option');
-        const breakdownLedRow = document.getElementById('breakdown-led-row');
-        const breakdownLedVal = document.getElementById('breakdown-led-val');
+        const isGiftCheckbox = document.getElementById('is_gift');
+        const giftMessageInput = document.getElementById('gift_message');
+        
+        const priceDisplay = document.getElementById('dynamic-price');
+        const summaryCard = document.getElementById('live-customization-summary');
+        const summaryItemsList = document.getElementById('summary-items-list');
+        const summaryPriceBreakdown = document.getElementById('summary-price-breakdown');
+        const summaryFinalPrice = document.getElementById('summary-final-price');
+        const checkoutTotalPrice = document.getElementById('checkout-total-price');
+        
+        const btnAddToCart = document.getElementById('btn-add-to-cart');
+        const btnBuyNow = document.getElementById('btn-buy-now');
+        
+        // Upload Elements
+        const dragDropArea = document.getElementById('drag-drop-area');
+        const photoFileInput = document.getElementById('photo-file-input');
+        const previewContainer = document.getElementById('preview-container');
+        const uploadValidationMsg = document.getElementById('upload-validation-msg');
 
-        // Config variables from django
+        // Config variables from Django template
         const productBasePrice = parseFloat("{{ product.price }}") || 0;
+        
+        const enableSizeSelection = "{{ product.enable_size_selection|yesno:'true,false' }}" === "true";
+        const enableSizeDescription = "{{ product.enable_size_description|yesno:'true,false' }}" === "true";
+        const enableNamePricing = "{{ product.enable_name_pricing|yesno:'true,false' }}" === "true";
+        const enablePhotoOption = "{{ product.enable_photo_option|yesno:'true,false' }}" === "true";
+        const enableClipOption = "{{ product.enable_clip_option|yesno:'true,false' }}" === "true";
+        const enableAddonOption = "{{ product.enable_addon_option|yesno:'true,false' }}" === "true";
+        const enableLedOption = "{{ product.enable_led_option|yesno:'true,false' }}" === "true";
+        const enablePhotoUpload = "{{ product.enable_photo_upload|yesno:'true,false' }}" === "true";
+        const enableGiftOption = "{{ product.enable_gift_option|yesno:'true,false' }}" === "true";
+        
         const extraPricePerLetter = parseFloat("{{ product.extra_letter_price|default:40 }}") || 0;
         const includedLetters = parseInt("{{ product.included_letters|default:5 }}") || 0;
-        const enableNamePricing = "{{ product.enable_name_pricing|yesno:'true,false' }}" === "true";
-        const enableSizeSelection = "{{ product.enable_size_selection|yesno:'true,false' }}" === "true";
-        const enableLedOption = "{{ product.enable_led_option|yesno:'true,false' }}" === "true";
+        
+        // Upload Limits
+        const photoUploadRequired = "{{ product.photo_upload_required|yesno:'true,false' }}" === "true";
+        const minPhotos = parseInt("{{ product.photo_upload_min|default:1 }}") || 1;
+        const maxPhotos = parseInt("{{ product.photo_upload_max|default:10 }}") || 10;
+        const maxFileSizeMB = parseFloat("{{ product.photo_upload_max_size|default:10 }}") || 10;
+        const allowedFormats = "{{ product.photo_upload_allowed_formats|default:'jpg,jpeg,png,webp' }}".toLowerCase().split(',');
 
-        function updatePrice() {
-            let basePrice = productBasePrice;
+        // Local array to hold files in order
+        let uploadedFiles = [];
 
-            // 1. Size Pricing
-            if (enableSizeSelection && sizeInputs.length > 0) {
-                const checkedSize = document.querySelector('input[name="size_id"]:checked');
-                if (checkedSize) {
-                    basePrice = parseFloat(checkedSize.getAttribute('data-price')) || 0;
+        // Update active size description
+        function updateSizeDescription() {
+            if (enableSizeSelection && enableSizeDescription && sizeDescContainer) {
+                const checkedRadio = document.querySelector('.size-radio:checked');
+                if (checkedRadio) {
+                    const desc = checkedRadio.getAttribute('data-desc');
+                    if (desc) {
+                        sizeDescContainer.innerHTML = `✨ <b>Size Note:</b> ${desc}`;
+                        sizeDescContainer.classList.remove('d-none');
+                    } else {
+                        sizeDescContainer.classList.add('d-none');
+                    }
+                }
+            }
+        }
+
+        // Live Customization Calculation & Card Building
+        function updateCalculations() {
+            let total = productBasePrice;
+            let breakdownHtml = '';
+            let summaryHtml = '';
+            
+            // 1. Size Selection
+            let selectedSizePrice = productBasePrice;
+            let selectedSizeName = '';
+            if (enableSizeSelection) {
+                const checkedRadio = document.querySelector('.size-radio:checked');
+                if (checkedRadio) {
+                    selectedSizePrice = parseFloat(checkedRadio.getAttribute('data-price')) || 0;
+                    selectedSizeName = checkedRadio.getAttribute('data-size-name');
+                    total = selectedSizePrice;
+                }
+            }
+            if (enableSizeSelection && selectedSizeName) {
+                summaryHtml += `<div class="d-flex justify-content-between"><span>📏 Size:</span><span class="fw-bold text-main">${selectedSizeName}</span></div>`;
+                breakdownHtml += `<div class="d-flex justify-content-between"><span>Base Size Price (${selectedSizeName}):</span><span>₹${selectedSizePrice}</span></div>`;
+            } else {
+                breakdownHtml += `<div class="d-flex justify-content-between"><span>Base Price:</span><span>₹${productBasePrice}</span></div>`;
+            }
+
+            // 2. Photo Option choice (With/Without)
+            let photoPrice = 0;
+            let photoChoiceText = '';
+            if (enablePhotoOption) {
+                const checkedPhotoOption = document.querySelector('.photo-option-radio:checked');
+                if (checkedPhotoOption) {
+                    photoPrice = parseFloat(checkedPhotoOption.getAttribute('data-price')) || 0;
+                    photoChoiceText = checkedPhotoOption.value === 'with' ? 'With Photo' : 'Without Photo';
+                    total += photoPrice;
+                }
+            }
+            if (enablePhotoOption && photoChoiceText) {
+                summaryHtml += `<div class="d-flex justify-content-between"><span>🖼️ Selection:</span><span class="fw-bold text-main">${photoChoiceText}</span></div>`;
+                if (photoPrice > 0) {
+                    breakdownHtml += `<div class="d-flex justify-content-between"><span>Photo Option Fee (${photoChoiceText}):</span><span>+₹${photoPrice}</span></div>`;
                 }
             }
 
-            let extraCharge = 0;
-            let letterCount = 0;
+            // 3. Clip Selection
+            let clipPrice = 0;
+            let selectedClipName = '';
+            if (enableClipOption) {
+                const checkedClip = document.querySelector('.clip-option-radio:checked');
+                if (checkedClip) {
+                    clipPrice = parseFloat(checkedClip.getAttribute('data-price')) || 0;
+                    selectedClipName = checkedClip.getAttribute('data-name');
+                    total += clipPrice;
+                }
+            }
+            if (enableClipOption && selectedClipName) {
+                summaryHtml += `<div class="d-flex justify-content-between"><span>🖇️ Clips Option:</span><span class="fw-bold text-main">${selectedClipName}</span></div>`;
+                if (clipPrice > 0) {
+                    breakdownHtml += `<div class="d-flex justify-content-between"><span>Clips Option Fee (${selectedClipName}):</span><span>+₹${clipPrice}</span></div>`;
+                }
+            }
 
-            // 2. Letter Pricing
+            // 4. Addons selections
+            let addonsPrice = 0;
+            let selectedAddonsList = [];
+            if (enableAddonOption) {
+                addonCheckboxes.forEach(cb => {
+                    if (cb.checked) {
+                        const price = parseFloat(cb.getAttribute('data-price')) || 0;
+                        const name = cb.getAttribute('data-name');
+                        addonsPrice += price;
+                        selectedAddonsList.push(name);
+                        breakdownHtml += `<div class="d-flex justify-content-between"><span>➕ Add-on (${name}):</span><span>+₹${price}</span></div>`;
+                    }
+                });
+                total += addonsPrice;
+            }
+            if (enableAddonOption && selectedAddonsList.length > 0) {
+                summaryHtml += `<div class="d-flex justify-content-between"><span>➕ Add-ons:</span><span class="fw-bold text-main">${selectedAddonsList.join(', ')}</span></div>`;
+            }
+
+            // 5. Name pricing extra charge
+            let extraLetterCharge = 0;
+            let letterCount = 0;
             if (enableNamePricing && customNameInput) {
                 const nameVal = customNameInput.value.replace(/\s+/g, '');
                 letterCount = nameVal.length;
                 const extraLetters = Math.max(0, letterCount - includedLetters);
-                extraCharge = extraLetters * extraPricePerLetter;
-
-                if (letterCountInfo) {
-                    letterCountInfo.textContent = `Letters: ${letterCount} (Included: ${includedLetters})`;
-                }
-                if (extraChargeInfo) {
-                    extraChargeInfo.textContent = `Extra Charge: ₹${extraCharge}`;
+                extraLetterCharge = extraLetters * extraPricePerLetter;
+                total += extraLetterCharge;
+            }
+            if (enableNamePricing && customNameInput && customNameInput.value.trim().length > 0) {
+                summaryHtml += `<div class="d-flex justify-content-between"><span>✏️ Name:</span><span class="fw-bold text-main">${customNameInput.value.trim()} (${letterCount} letters)</span></div>`;
+                if (extraLetterCharge > 0) {
+                    breakdownHtml += `<div class="d-flex justify-content-between"><span>Extra Letters (${letterCount} letters):</span><span>+₹${extraLetterCharge}</span></div>`;
                 }
             }
 
-            let ledCharge = 0;
+            // 6. LED Backlight Option
+            let ledPrice = 0;
             if (enableLedOption && ledOptionInput && ledOptionInput.checked) {
-                ledCharge = 150;
+                ledPrice = 150;
+                total += ledPrice;
+                summaryHtml += `<div class="d-flex justify-content-between"><span>💡 Backlight:</span><span class="fw-bold text-main">LED Backlight (+₹150)</span></div>`;
+                breakdownHtml += `<div class="d-flex justify-content-between"><span>💡 LED lights fee:</span><span>+₹150</span></div>`;
             }
 
-            const finalPrice = basePrice + extraCharge + ledCharge;
-
-            // Update main display
-            if (priceDisplay) {
-                priceDisplay.textContent = '₹' + finalPrice;
+            // 7. Gift message
+            if (enableGiftOption && isGiftCheckbox && isGiftCheckbox.checked) {
+                summaryHtml += `<div class="d-flex justify-content-between"><span>🎁 Gift Details:</span><span class="fw-bold text-main">Gift Wrapped</span></div>`;
+                if (giftMessageInput && giftMessageInput.value.trim()) {
+                    summaryHtml += `<div class="mt-1 p-2 bg-white rounded-3 small border border-light" style="font-size: 11px;"><b>Gift Note:</b> "${giftMessageInput.value.trim()}"</div>`;
+                }
             }
 
-            // 3. Breakdown display
-            if (breakdownDiv) {
-                if (enableNamePricing || (enableSizeSelection && sizeInputs.length > 0) || (enableLedOption && ledOptionInput && ledOptionInput.checked)) {
-                    breakdownDiv.classList.remove('d-none');
-                    if (breakdownBaseLabel) {
-                        breakdownBaseLabel.textContent = enableSizeSelection ? "Selected Size Price:" : "Base Price:";
-                    }
-                    if (breakdownBaseVal) breakdownBaseVal.textContent = '₹' + basePrice;
-                    if (breakdownExtraVal) breakdownExtraVal.textContent = '₹' + extraCharge;
-                    
-                    if (breakdownLedRow) {
-                        if (ledCharge > 0) {
-                            breakdownLedRow.classList.remove('d-none');
-                        } else {
-                            breakdownLedRow.classList.add('d-none');
-                        }
-                    }
-                    if (breakdownTotalVal) breakdownTotalVal.textContent = '₹' + finalPrice;
+            // 8. Uploaded Reference Photos
+            if (enablePhotoUpload) {
+                summaryHtml += `<div class="d-flex justify-content-between"><span>📷 Uploaded Photos:</span><span class="fw-bold text-main">${uploadedFiles.length} photos</span></div>`;
+            }
+
+            // Update DOM displays
+            const formattedTotal = Math.round(total);
+            if (priceDisplay) priceDisplay.textContent = '₹' + formattedTotal;
+            if (checkoutTotalPrice) checkoutTotalPrice.textContent = '₹' + formattedTotal;
+            if (summaryFinalPrice) summaryFinalPrice.textContent = '₹' + formattedTotal;
+            
+            if (summaryItemsList) summaryItemsList.innerHTML = summaryHtml;
+            if (summaryPriceBreakdown) summaryPriceBreakdown.innerHTML = breakdownHtml;
+
+            // Show or Hide Summary Card based on selections
+            if (summaryCard) {
+                if (summaryHtml !== '') {
+                    summaryCard.classList.remove('d-none');
                 } else {
-                    breakdownDiv.classList.add('d-none');
+                    summaryCard.classList.add('d-none');
                 }
             }
         }
 
-        // Add event listeners
-        sizeInputs.forEach(input => {
-            input.addEventListener('change', updatePrice);
+        // Drop Zone Event Handlers
+        if (enablePhotoUpload && dragDropArea) {
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dragDropArea.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    dragDropArea.classList.add('bg-light', 'border-primary');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dragDropArea.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    dragDropArea.classList.remove('bg-light', 'border-primary');
+                }, false);
+            });
+
+            dragDropArea.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                handleUploadedFiles(files);
+            });
+
+            photoFileInput.addEventListener('change', (e) => {
+                handleUploadedFiles(photoFileInput.files);
+            });
+        }
+
+        // Process Uploaded files (validation & push)
+        function handleUploadedFiles(files) {
+            if (!files.length) return;
+            let currentTotal = uploadedFiles.length;
+            let hasErrors = false;
+            let errors = [];
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const extension = file.name.split('.').pop().toLowerCase();
+                const fileSizeMB = file.size / (1024 * 1024);
+
+                // 1. Format validation
+                if (!allowedFormats.includes(extension)) {
+                    hasErrors = true;
+                    errors.push(`"${file.name}" format is not allowed.`);
+                    continue;
+                }
+
+                // 2. File size validation
+                if (fileSizeMB > maxFileSizeMB) {
+                    hasErrors = true;
+                    errors.push(`"${file.name}" exceeds ${maxFileSizeMB}MB limit.`);
+                    continue;
+                }
+
+                // 3. Max upload limit check
+                if (currentTotal >= maxPhotos) {
+                    hasErrors = true;
+                    errors.push(`Cannot upload more than ${maxPhotos} photos.`);
+                    break;
+                }
+
+                // Add to files array
+                uploadedFiles.push(file);
+                currentTotal++;
+            }
+
+            if (hasErrors) {
+                alert(errors.join('\n'));
+            }
+
+            renderThumbnails();
+            validatePhotosLimits();
+            updateCalculations();
+        }
+
+        // Reorder Files helper
+        function moveArrayItem(arr, fromIndex, toIndex) {
+            const element = arr[fromIndex];
+            arr.splice(fromIndex, 1);
+            arr.splice(toIndex, 0, element);
+        }
+
+        // Render thumbnails with drag & drop sorting, replace and remove buttons
+        let draggedIndex = null;
+        function renderThumbnails() {
+            if (!previewContainer) return;
+            previewContainer.innerHTML = '';
+
+            uploadedFiles.forEach((file, index) => {
+                const col = document.createElement('div');
+                col.className = 'col position-relative text-center thumbnail-item-wrapper';
+                col.setAttribute('draggable', 'true');
+                col.style.cursor = 'grab';
+
+                const card = document.createElement('div');
+                card.className = 'card border overflow-hidden rounded-3 shadow-sm bg-white position-relative';
+                card.style.height = '75px';
+
+                // Image Preview
+                const img = document.createElement('img');
+                img.className = 'w-100 h-100 object-fit-cover';
+                img.src = URL.createObjectURL(file);
+                card.appendChild(img);
+
+                // Quality Badge Container
+                const qualityBadge = document.createElement('span');
+                qualityBadge.className = 'position-absolute bottom-0 start-0 w-100 text-center x-small text-white py-1';
+                qualityBadge.style.fontSize = '8px';
+                qualityBadge.style.backgroundColor = 'rgba(0,0,0,0.6)';
+                qualityBadge.textContent = 'Normal';
+                card.appendChild(qualityBadge);
+
+                // Run dimension check to evaluate quality badge
+                const tempImg = new Image();
+                tempImg.src = URL.createObjectURL(file);
+                tempImg.onload = function() {
+                    if (this.width >= 1200 || this.height >= 1200) {
+                        qualityBadge.textContent = '✨ High Res';
+                        qualityBadge.style.backgroundColor = 'rgba(40, 167, 69, 0.8)';
+                    } else {
+                        qualityBadge.textContent = 'Normal Res';
+                        qualityBadge.style.backgroundColor = 'rgba(23, 162, 184, 0.7)';
+                    }
+                };
+
+                // Action Overlays
+                const actionOverlay = document.createElement('div');
+                actionOverlay.className = 'position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-40 d-flex align-items-center justify-content-center opacity-0 hover-opacity-100 transition-all';
+                
+                // Replace Trigger
+                const btnReplace = document.createElement('button');
+                btnReplace.type = 'button';
+                btnReplace.className = 'btn btn-light btn-sm rounded-circle p-1 me-1';
+                btnReplace.style.width = '24px';
+                btnReplace.style.height = '24px';
+                btnReplace.title = 'Replace photo';
+                btnReplace.innerHTML = '<i class="fa-solid fa-arrows-rotate small" style="font-size:10px;"></i>';
+                btnReplace.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const replaceInput = document.createElement('input');
+                    replaceInput.type = 'file';
+                    replaceInput.accept = 'image/*';
+                    replaceInput.onchange = function() {
+                        if (replaceInput.files.length > 0) {
+                            const newFile = replaceInput.files[0];
+                            const extension = newFile.name.split('.').pop().toLowerCase();
+                            const fileSizeMB = newFile.size / (1024 * 1024);
+
+                            if (!allowedFormats.includes(extension)) {
+                                alert('Invalid file format.');
+                                return;
+                            }
+                            if (fileSizeMB > maxFileSizeMB) {
+                                alert(`Exceeds maximum size of ${maxFileSizeMB}MB.`);
+                                return;
+                            }
+                            uploadedFiles[index] = newFile;
+                            renderThumbnails();
+                            updateCalculations();
+                        }
+                    };
+                    replaceInput.click();
+                });
+                actionOverlay.appendChild(btnReplace);
+
+                // Remove Trigger
+                const btnRemove = document.createElement('button');
+                btnRemove.type = 'button';
+                btnRemove.className = 'btn btn-danger btn-sm rounded-circle p-1';
+                btnRemove.style.width = '24px';
+                btnRemove.style.height = '24px';
+                btnRemove.title = 'Remove photo';
+                btnRemove.innerHTML = '<i class="fa-solid fa-times small" style="font-size:10px;"></i>';
+                btnRemove.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    uploadedFiles.splice(index, 1);
+                    renderThumbnails();
+                    validatePhotosLimits();
+                    updateCalculations();
+                });
+                actionOverlay.appendChild(btnRemove);
+                
+                card.appendChild(actionOverlay);
+                col.appendChild(card);
+
+                // Drag and Drop Event Listeners
+                col.addEventListener('dragstart', (e) => {
+                    draggedIndex = index;
+                    col.style.opacity = '0.5';
+                    e.dataTransfer.effectAllowed = 'move';
+                });
+
+                col.addEventListener('dragend', () => {
+                    col.style.opacity = '1';
+                });
+
+                col.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    return false;
+                });
+
+                col.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    if (draggedIndex !== null && draggedIndex !== index) {
+                        moveArrayItem(uploadedFiles, draggedIndex, index);
+                        renderThumbnails();
+                        updateCalculations();
+                    }
+                    draggedIndex = null;
+                });
+
+                previewContainer.appendChild(col);
+            });
+        }
+
+        // Validate photos count limit
+        function validatePhotosLimits() {
+            if (!enablePhotoUpload || !uploadValidationMsg) return true;
+            
+            const count = uploadedFiles.length;
+            
+            if (photoUploadRequired && count === 0) {
+                uploadValidationMsg.innerHTML = `<i class="fa-solid fa-triangle-exclamation me-1"></i> Reference photos are required. Please upload at least ${minPhotos} photo.`;
+                uploadValidationMsg.className = 'mt-2 small text-danger';
+                return false;
+            }
+            if (count > 0 && count < minPhotos) {
+                uploadValidationMsg.innerHTML = `<i class="fa-solid fa-triangle-exclamation me-1"></i> You need to upload at least ${minPhotos} photos (Current: ${count}).`;
+                uploadValidationMsg.className = 'mt-2 small text-warning';
+                return false;
+            }
+            if (count > maxPhotos) {
+                uploadValidationMsg.innerHTML = `<i class="fa-solid fa-triangle-exclamation me-1"></i> Limit exceeded. Max photos allowed: ${maxPhotos} (Current: ${count}).`;
+                uploadValidationMsg.className = 'mt-2 small text-danger';
+                return false;
+            }
+            
+            if (count > 0) {
+                uploadValidationMsg.innerHTML = `<i class="fa-solid fa-circle-check me-1"></i> Upload count fits criteria (${count} of ${minPhotos}–${maxPhotos} photos).`;
+                uploadValidationMsg.className = 'mt-2 small text-success';
+            } else {
+                uploadValidationMsg.innerHTML = '';
+            }
+            return true;
+        }
+
+        // Add Listeners
+        sizeRadios.forEach(input => {
+            input.addEventListener('change', () => {
+                updateSizeDescription();
+                updateCalculations();
+            });
+        });
+        updateSizeDescription(); // Init size description
+
+        photoOptionRadios.forEach(input => {
+            input.addEventListener('change', updateCalculations);
+        });
+
+        clipOptionRadios.forEach(input => {
+            input.addEventListener('change', updateCalculations);
+        });
+
+        addonCheckboxes.forEach(input => {
+            input.addEventListener('change', updateCalculations);
         });
 
         if (customNameInput) {
-            customNameInput.addEventListener('input', updatePrice);
+            customNameInput.addEventListener('input', () => {
+                const nameVal = customNameInput.value.replace(/\s+/g, '');
+                const letterCount = nameVal.length;
+                const extraLetters = Math.max(0, letterCount - includedLetters);
+                const extraCharge = extraLetters * extraPricePerLetter;
+                
+                if (letterCountInfo) letterCountInfo.textContent = `Letters: ${letterCount} (Included: ${includedLetters})`;
+                if (extraChargeInfo) extraChargeInfo.textContent = `Extra Charge: ₹${extraCharge}`;
+                
+                updateCalculations();
+            });
         }
 
-        if (ledOptionInput) {
-            ledOptionInput.addEventListener('change', updatePrice);
-        }
+        if (ledOptionInput) ledOptionInput.addEventListener('change', updateCalculations);
+        if (isGiftCheckbox) isGiftCheckbox.addEventListener('change', updateCalculations);
+        if (giftMessageInput) giftMessageInput.addEventListener('input', updateCalculations);
 
-        // Initialize price display
-        updatePrice();
-        
-        // Form Validation
-        const form = document.querySelector('form');
-        form.addEventListener('submit', function(e) {
-            // Validate size selection if enabled
-            if (enableSizeSelection && sizeInputs.length > 0) {
-                const isSelected = document.querySelector('input[name="size_id"]:checked');
+        // Run Initial calculations
+        updateCalculations();
+
+        // AJAX Form Submission handler
+        function submitFormData(isBuyNow = false) {
+            // 1. Validate Form controls
+            if (enableSizeSelection && sizeRadios.length > 0) {
+                const isSelected = document.querySelector('.size-radio:checked');
                 if (!isSelected) {
-                    e.preventDefault();
-                    alert("Please select size");
+                    alert("Please select size!");
+                    const container = document.getElementById('size-selector');
+                    if (container) container.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     return;
                 }
             }
 
-            // Validate name pricing input if enabled (and required)
             if (enableNamePricing && customNameInput) {
-                const nameVal = customNameInput.value.trim();
-                if (nameVal === "") {
-                    e.preventDefault();
-                    alert("Please enter the name.");
+                if (customNameInput.value.trim() === "") {
+                    alert("Please enter a name for personalization.");
                     customNameInput.focus();
                     return;
                 }
             }
-        });
+
+            if (enablePhotoUpload) {
+                const isValid = validatePhotosLimits();
+                if (!isValid) {
+                    alert(`Please fix photos upload validation to place your order. Minimum required: ${minPhotos}, Maximum allowed: ${maxPhotos}.`);
+                    const container = document.getElementById('photo-upload-container');
+                    if (container) container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return;
+                }
+            }
+
+            // Lock buttons and display spinner
+            const activeBtn = isBuyNow ? btnBuyNow : btnAddToCart;
+            const originalContent = activeBtn.innerHTML;
+            activeBtn.disabled = true;
+            activeBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Processing...`;
+
+            // Compile Form Data
+            const formData = new FormData(form);
+            
+            // Override standard custom_images files with our ordered array files
+            formData.delete('custom_images');
+            uploadedFiles.forEach((file) => {
+                formData.append('custom_images', file);
+            });
+
+            if (isBuyNow) {
+                formData.append('buy_now', 'true');
+            }
+
+            // AJAX post request
+            fetch("{% url 'add_to_cart' %}", {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("Network response was not ok");
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'success' && data.redirect_url) {
+                    window.location.href = data.redirect_url;
+                } else {
+                    alert("Something went wrong, please try again.");
+                    activeBtn.disabled = false;
+                    activeBtn.innerHTML = originalContent;
+                }
+            })
+            .catch(error => {
+                console.error("Submission Error:", error);
+                alert("Could not process request. Please try again.");
+                activeBtn.disabled = false;
+                activeBtn.innerHTML = originalContent;
+            });
+        }
+
+        // Attach submission triggers
+        if (btnAddToCart) {
+            btnAddToCart.addEventListener('click', (e) => {
+                e.preventDefault();
+                submitFormData(false);
+            });
+        }
+
+        if (btnBuyNow) {
+            btnBuyNow.addEventListener('click', (e) => {
+                e.preventDefault();
+                submitFormData(true);
+            });
+        }
     });
 </script>
 {% endblock %}

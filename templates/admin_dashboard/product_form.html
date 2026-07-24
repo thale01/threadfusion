@@ -47,7 +47,6 @@
                         </div>
                     </div>
                 </div>
-
                 <!-- Customization Switches -->
                 <div class="apple-card">
                     <h5 class="fw-bold mb-4"><i class="fa-solid fa-sliders text-primary me-2"></i>Customization Features</h5>
@@ -62,6 +61,12 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-check form-switch p-3 bg-light rounded-3 border d-flex justify-content-between align-items-center m-0">
+                                <label class="form-check-label small fw-bold text-main" style="margin-left:0;">📖 Enable Size Descriptions</label>
+                                {{ form.enable_size_description }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch p-3 bg-light rounded-3 border d-flex justify-content-between align-items-center m-0">
                                 <label class="form-check-label small fw-bold text-main" style="margin-left:0;">✏️ Enable Name/Letter Pricing</label>
                                 {{ form.enable_name_pricing }}
                             </div>
@@ -70,6 +75,24 @@
                             <div class="form-check form-switch p-3 bg-light rounded-3 border d-flex justify-content-between align-items-center m-0">
                                 <label class="form-check-label small fw-bold text-main" style="margin-left:0;">📷 Enable Photo Upload</label>
                                 {{ form.enable_photo_upload }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch p-3 bg-light rounded-3 border d-flex justify-content-between align-items-center m-0">
+                                <label class="form-check-label small fw-bold text-main" style="margin-left:0;">🖼️ Enable Photo Option (With/Without)</label>
+                                {{ form.enable_photo_option }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch p-3 bg-light rounded-3 border d-flex justify-content-between align-items-center m-0">
+                                <label class="form-check-label small fw-bold text-main" style="margin-left:0;">🖇️ Enable Clips Option</label>
+                                {{ form.enable_clip_option }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch p-3 bg-light rounded-3 border d-flex justify-content-between align-items-center m-0">
+                                <label class="form-check-label small fw-bold text-main" style="margin-left:0;">➕ Enable Add-ons Option</label>
+                                {{ form.enable_addon_option }}
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -101,6 +124,65 @@
                                 <label class="form-check-label small fw-bold text-main" style="margin-left:0;">💡 Enable LED Lights Option</label>
                                 {{ form.enable_led_option }}
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Photo Option Config Card -->
+                <div class="apple-card" id="photo-option-fields">
+                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-camera text-primary me-2"></i>Photo Choice Prices & Descriptions</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">"With Photo" Price (₹)</label>
+                            {{ form.photo_option_with_price }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">"Without Photo" Price (₹)</label>
+                            {{ form.photo_option_without_price }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">"With Photo" Description</label>
+                            {{ form.photo_option_description_with }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">"Without Photo" Description</label>
+                            {{ form.photo_option_description_without }}
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label small fw-bold">Default Choice Selection</label>
+                            <select name="photo_option_default" class="form-select">
+                                <option value="with" {% if form.photo_option_default.value == 'with' %}selected{% endif %}>With Photo</option>
+                                <option value="without" {% if form.photo_option_default.value == 'without' %}selected{% endif %}>Without Photo</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Photo Upload Constraints Card -->
+                <div class="apple-card" id="photo-upload-fields">
+                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-cloud-arrow-up text-primary me-2"></i>Photo Upload Configuration</h5>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Make Upload Required?</label>
+                            <div class="form-check form-switch mt-2">
+                                {{ form.photo_upload_required }}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Min Photos Count</label>
+                            {{ form.photo_upload_min }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Max Photos Count</label>
+                            {{ form.photo_upload_max }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Max Size per File (MB)</label>
+                            {{ form.photo_upload_max_size }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Allowed Formats <span class="text-muted">(Comma separated)</span></label>
+                            {{ form.photo_upload_allowed_formats }}
                         </div>
                     </div>
                 </div>
@@ -175,19 +257,285 @@
     </form>
 </div>
 
+{% if action == 'Edit' %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="apple-card">
+            <h4 class="fw-bold mb-4"><i class="fa-solid fa-gears text-primary me-2"></i>Product Customizations & Sub-Options</h4>
+            
+            <!-- Nav Tabs -->
+            <ul class="nav nav-pills mb-4" id="customizationTabs" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link active rounded-pill px-4" id="sizes-tab" data-bs-toggle="pill" data-bs-target="#tab-sizes" type="button"><i class="fa-solid fa-maximize me-2"></i>Product Sizes</button>
+                </li>
+                <li class="nav-item ms-2">
+                    <button class="nav-link rounded-pill px-4" id="clips-tab" data-bs-toggle="pill" data-bs-target="#tab-clips" type="button"><i class="fa-solid fa-paperclip me-2"></i>Clip Options</button>
+                </li>
+                <li class="nav-item ms-2">
+                    <button class="nav-link rounded-pill px-4" id="addons-tab" data-bs-toggle="pill" data-bs-target="#tab-addons" type="button"><i class="fa-solid fa-circle-plus me-2"></i>Add-on Options</button>
+                </li>
+            </ul>
+
+            <!-- Tab Contents -->
+            <div class="tab-content">
+                <!-- Sizes Tab -->
+                <div class="tab-pane fade show active" id="tab-sizes">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0">Sizes & Pricing Descriptions</h6>
+                        <button type="button" class="btn btn-primary btn-sm rounded-pill px-3" onclick="openSizeModal()"><i class="fa-solid fa-plus me-1"></i>Add Size</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr class="small text-secondary">
+                                    <th>Size</th>
+                                    <th>Price</th>
+                                    <th>Size Description</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in product.sizes.all %}
+                                <tr>
+                                    <td><span class="fw-bold text-main">{{ s.size }}</span></td>
+                                    <td>₹{{ s.price }}</td>
+                                    <td><span class="text-muted small">{{ s.description|default:"No description" }}</span></td>
+                                    <td class="text-end">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick="openSizeModal('{{ s.id }}', '{{ s.size }}', '{{ s.price }}', '{{ s.description|escapejs }}')">Edit</button>
+                                        <a href="{% url 'admin_product_size_delete' product.id s.id %}" class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="return confirm('Delete this size?');">Delete</a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="4" class="text-center text-secondary py-3 small">No sizes created yet.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Clips Tab -->
+                <div class="tab-pane fade" id="tab-clips">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0">Clips Selection Settings</h6>
+                        <button type="button" class="btn btn-primary btn-sm rounded-pill px-3" onclick="openClipModal()"><i class="fa-solid fa-plus me-1"></i>Add Clip Option</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr class="small text-secondary">
+                                    <th>Name</th>
+                                    <th>Additional Price</th>
+                                    <th>Description</th>
+                                    <th>Status</th>
+                                    <th>Default</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for c in product.clip_options.all %}
+                                <tr>
+                                    <td><span class="fw-bold text-main">{{ c.name }}</span></td>
+                                    <td>+₹{{ c.additional_price }}</td>
+                                    <td><span class="text-muted small">{{ c.description|default:"No description" }}</span></td>
+                                    <td>
+                                        {% if c.enabled %}<span class="badge bg-success">Enabled</span>{% else %}<span class="badge bg-secondary">Disabled</span>{% endif %}
+                                    </td>
+                                    <td>
+                                        {% if c.is_default %}<span class="badge bg-primary">Default</span>{% else %}<span class="text-muted small">-</span>{% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick="openClipModal('{{ c.id }}', '{{ c.name }}', '{{ c.additional_price }}', '{{ c.description|escapejs }}', '{{ c.enabled }}', '{{ c.is_default }}')">Edit</button>
+                                        <a href="{% url 'admin_product_clip_delete' product.id c.id %}" class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="return confirm('Delete this clip?');">Delete</a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="6" class="text-center text-secondary py-3 small">No clip options created yet.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Addons Tab -->
+                <div class="tab-pane fade" id="tab-addons">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0">Optional Gift Add-ons</h6>
+                        <button type="button" class="btn btn-primary btn-sm rounded-pill px-3" onclick="openAddonModal()"><i class="fa-solid fa-plus me-1"></i>Add Add-on</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr class="small text-secondary">
+                                    <th>Name</th>
+                                    <th>Additional Price</th>
+                                    <th>Description</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for a in product.addon_options.all %}
+                                <tr>
+                                    <td><span class="fw-bold text-main">{{ a.name }}</span></td>
+                                    <td>+₹{{ a.additional_price }}</td>
+                                    <td><span class="text-muted small">{{ a.description|default:"No description" }}</span></td>
+                                    <td>
+                                        {% if a.enabled %}<span class="badge bg-success">Enabled</span>{% else %}<span class="badge bg-secondary">Disabled</span>{% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick="openAddonModal('{{ a.id }}', '{{ a.name }}', '{{ a.additional_price }}', '{{ a.description|escapejs }}', '{{ a.enabled }}')">Edit</button>
+                                        <a href="{% url 'admin_product_addon_delete' product.id a.id %}" class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="return confirm('Delete this add-on?');">Delete</a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="5" class="text-center text-secondary py-3 small">No add-ons created yet.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Size Modal -->
+<div class="modal fade" id="sizeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 rounded-4">
+            <form method="POST" action="{% url 'admin_product_size_save' product.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="size_id" id="modal-size-id">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="sizeModalTitle">Add Size</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Size Name (e.g. 8x10 Inch)</label>
+                        <input type="text" name="size" id="modal-size-name" required class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Size Base Price (₹)</label>
+                        <input type="number" name="price" id="modal-size-price" required class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Size Description / Notes</label>
+                        <textarea name="description" id="modal-size-desc" class="form-control" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Clip Modal -->
+<div class="modal fade" id="clipModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 rounded-4">
+            <form method="POST" action="{% url 'admin_product_clip_save' product.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="clip_id" id="modal-clip-id">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="clipModalTitle">Add Clip Option</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Clip Option Name</label>
+                        <input type="text" name="name" id="modal-clip-name" required class="form-control" placeholder="e.g. Wooden Clips">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Additional Price (₹)</label>
+                        <input type="number" step="0.01" name="additional_price" id="modal-clip-price" required class="form-control" placeholder="0.00">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Clip Description</label>
+                        <input type="text" name="description" id="modal-clip-desc" class="form-control" placeholder="e.g. Best for photo frames">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold d-block">Flags</label>
+                        <div class="form-check form-switch mt-1">
+                            <input type="checkbox" name="enabled" id="modal-clip-enabled" class="form-check-input" checked>
+                            <label class="form-check-label small fw-bold">Enabled</label>
+                        </div>
+                        <div class="form-check form-switch mt-1">
+                            <input type="checkbox" name="is_default" id="modal-clip-default" class="form-check-input">
+                            <label class="form-check-label small fw-bold text-primary">Set as Default Selection</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Addon Modal -->
+<div class="modal fade" id="addonModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 rounded-4">
+            <form method="POST" action="{% url 'admin_product_addon_save' product.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="addon_id" id="modal-addon-id">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="addonModalTitle">Add Add-on</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Add-on Name</label>
+                        <input type="text" name="name" id="modal-addon-name" required class="form-control" placeholder="e.g. Stand">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Additional Price (₹)</label>
+                        <input type="number" step="0.01" name="additional_price" id="modal-addon-price" required class="form-control" placeholder="0.00">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Add-on Description</label>
+                        <textarea name="description" id="modal-addon-desc" class="form-control" rows="2" placeholder="e.g. Hardwood easel stand..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check form-switch mt-1">
+                            <input type="checkbox" name="enabled" id="modal-addon-enabled" class="form-check-input" checked>
+                            <label class="form-check-label small fw-bold">Enabled</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <!-- Simple Bootstrap Form Injector styling -->
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         // Add form-control class to all inputs
         const textInputs = document.querySelectorAll('input[type="text"], input[type="number"], select, textarea');
         textInputs.forEach(input => {
-            input.classList.add('form-control');
+            if (!input.classList.contains('form-control')) {
+                input.classList.add('form-control');
+            }
         });
         
         // Add form-check-input to checkboxes
         const checkboxes = document.querySelectorAll('input[type="checkbox"]');
         checkboxes.forEach(cb => {
-            cb.classList.add('form-check-input');
+            if (!cb.classList.contains('form-check-input')) {
+                cb.classList.add('form-check-input');
+            }
         });
 
         // Hide/Show Letter Pricing Configs based on toggle
@@ -195,9 +543,9 @@
         const letterFieldsDiv = document.getElementById('letter-pricing-fields');
         
         function toggleLetterFields() {
-            if (namePricingToggle.checked) {
+            if (namePricingToggle && namePricingToggle.checked) {
                 letterFieldsDiv.style.display = 'block';
-            } else {
+            } else if (letterFieldsDiv) {
                 letterFieldsDiv.style.display = 'none';
             }
         }
@@ -206,6 +554,70 @@
             namePricingToggle.addEventListener('change', toggleLetterFields);
             toggleLetterFields(); // init
         }
+
+        // Hide/Show Photo Option Configs based on toggle
+        const photoOptionToggle = document.querySelector('input[name="enable_photo_option"]');
+        const photoOptionFieldsDiv = document.getElementById('photo-option-fields');
+        function togglePhotoOptionFields() {
+            if (photoOptionToggle && photoOptionToggle.checked) {
+                photoOptionFieldsDiv.style.display = 'block';
+            } else if (photoOptionFieldsDiv) {
+                photoOptionFieldsDiv.style.display = 'none';
+            }
+        }
+        if (photoOptionToggle && photoOptionFieldsDiv) {
+            photoOptionToggle.addEventListener('change', togglePhotoOptionFields);
+            togglePhotoOptionFields();
+        }
+
+        // Hide/Show Photo Upload Constraints based on toggle
+        const photoUploadToggle = document.querySelector('input[name="enable_photo_upload"]');
+        const photoUploadFieldsDiv = document.getElementById('photo-upload-fields');
+        function togglePhotoUploadFields() {
+            if (photoUploadToggle && photoUploadToggle.checked) {
+                photoUploadFieldsDiv.style.display = 'block';
+            } else if (photoUploadFieldsDiv) {
+                photoUploadFieldsDiv.style.display = 'none';
+            }
+        }
+        if (photoUploadToggle && photoUploadFieldsDiv) {
+            photoUploadToggle.addEventListener('change', togglePhotoUploadFields);
+            togglePhotoUploadFields();
+        }
+
+        // Modal Open Helper Functions
+        window.openSizeModal = function(id = '', size = '', price = '', desc = '') {
+            document.getElementById('modal-size-id').value = id;
+            document.getElementById('modal-size-name').value = size;
+            document.getElementById('modal-size-price').value = price;
+            document.getElementById('modal-size-desc').value = desc;
+            document.getElementById('sizeModalTitle').textContent = id ? 'Edit Size' : 'Add Size';
+            const modal = new bootstrap.Modal(document.getElementById('sizeModal'));
+            modal.show();
+        };
+
+        window.openClipModal = function(id = '', name = '', price = '', desc = '', enabled = 'True', is_default = 'False') {
+            document.getElementById('modal-clip-id').value = id;
+            document.getElementById('modal-clip-name').value = name;
+            document.getElementById('modal-clip-price').value = parseFloat(price) || 0;
+            document.getElementById('modal-clip-desc').value = desc;
+            document.getElementById('modal-clip-enabled').checked = (enabled === 'True');
+            document.getElementById('modal-clip-default').checked = (is_default === 'True');
+            document.getElementById('clipModalTitle').textContent = id ? 'Edit Clip Option' : 'Add Clip Option';
+            const modal = new bootstrap.Modal(document.getElementById('clipModal'));
+            modal.show();
+        };
+
+        window.openAddonModal = function(id = '', name = '', price = '', desc = '', enabled = 'True') {
+            document.getElementById('modal-addon-id').value = id;
+            document.getElementById('modal-addon-name').value = name;
+            document.getElementById('modal-addon-price').value = parseFloat(price) || 0;
+            document.getElementById('modal-addon-desc').value = desc;
+            document.getElementById('modal-addon-enabled').checked = (enabled === 'True');
+            document.getElementById('addonModalTitle').textContent = id ? 'Edit Add-on' : 'Add Add-on';
+            const modal = new bootstrap.Modal(document.getElementById('addonModal'));
+            modal.show();
+        };
     });
 </script>
 {% endblock %}

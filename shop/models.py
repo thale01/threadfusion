@@ -22,6 +22,7 @@ class Product(models.Model):
     customization_label = models.CharField(max_length=100, blank=True, help_text="Label for customization field (e.g. 'Enter name')")
     enable_customization = models.BooleanField(default=False)
     enable_size_selection = models.BooleanField(default=False)
+    enable_size_description = models.BooleanField(default=False)
     enable_name_pricing = models.BooleanField(default=False)
     enable_photo_upload = models.BooleanField(default=False)
     enable_custom_message = models.BooleanField(default=False)
@@ -29,6 +30,24 @@ class Product(models.Model):
     enable_thread_color = models.BooleanField(default=False)
     enable_frame_color = models.BooleanField(default=False)
     enable_led_option = models.BooleanField(default=False)
+    enable_photo_option = models.BooleanField(default=False)
+    enable_clip_option = models.BooleanField(default=False)
+    enable_addon_option = models.BooleanField(default=False)
+    
+    # Photo Option fields
+    photo_option_with_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    photo_option_without_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    photo_option_description_with = models.TextField(blank=True, null=True)
+    photo_option_description_without = models.TextField(blank=True, null=True)
+    photo_option_default = models.CharField(max_length=20, default='with')
+    
+    # Photo Upload constraints
+    photo_upload_required = models.BooleanField(default=False)
+    photo_upload_min = models.IntegerField(default=1)
+    photo_upload_max = models.IntegerField(default=10)
+    photo_upload_max_size = models.IntegerField(default=10, help_text="in MB")
+    photo_upload_allowed_formats = models.CharField(max_length=100, default="jpg,jpeg,png,webp")
+    
     included_letters = models.IntegerField(default=5)
     extra_letter_price = models.IntegerField(default=40)
     available = models.BooleanField(default=True)
@@ -60,9 +79,31 @@ class ProductSize(models.Model):
     product = models.ForeignKey(Product, related_name='sizes', on_delete=models.CASCADE)
     size = models.CharField(max_length=50)
     price = models.IntegerField()
+    description = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.product.name} - {self.size}"
+
+class ProductClipOption(models.Model):
+    product = models.ForeignKey(Product, related_name='clip_options', on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+    additional_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    description = models.CharField(max_length=255, blank=True, null=True)
+    enabled = models.BooleanField(default=True)
+    is_default = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.product.name} - {self.name} (+₹{self.additional_price})"
+
+class ProductAddonOption(models.Model):
+    product = models.ForeignKey(Product, related_name='addon_options', on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
+    additional_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    enabled = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.product.name} - {self.name} (+₹{self.additional_price})"
 
 class Address(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='addresses')
@@ -121,10 +162,22 @@ class CartItem(models.Model):
     frame_color = models.CharField(max_length=50, blank=True, null=True)
     thread_color = models.CharField(max_length=50, blank=True, null=True)
     led_option = models.BooleanField(default=False)
+    selected_photo_option = models.CharField(max_length=50, blank=True, null=True)
+    selected_clip_option = models.CharField(max_length=100, blank=True, null=True)
+    selected_addons = models.TextField(blank=True, null=True)
 
     def get_total_price(self):
         base_price = self.price_override if self.price_override is not None else self.product.price
         return base_price * self.quantity
+
+    def get_addons_list(self):
+        if self.selected_addons:
+            import json
+            try:
+                return json.loads(self.selected_addons)
+            except Exception:
+                return []
+        return []
 
 class Order(models.Model):
     STATUS_CHOICES = (
@@ -171,6 +224,8 @@ class CustomImage(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='images', null=True, blank=True)
     cart_item = models.ForeignKey('CartItem', on_delete=models.CASCADE, related_name='images', null=True, blank=True)
     image = models.ImageField(upload_to='custom_uploads/')
+    order_index = models.IntegerField(default=0)
+    original_name = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
         return f"Image for {self.order or self.cart_item}"
@@ -189,10 +244,22 @@ class OrderItem(models.Model):
     frame_color = models.CharField(max_length=50, blank=True, null=True)
     thread_color = models.CharField(max_length=50, blank=True, null=True)
     led_option = models.BooleanField(default=False)
+    selected_photo_option = models.CharField(max_length=50, blank=True, null=True)
+    selected_clip_option = models.CharField(max_length=100, blank=True, null=True)
+    selected_addons = models.TextField(blank=True, null=True)
 
     def __str__(self):
         size_str = f" ({self.product_size})" if self.product_size else ""
         return f"{self.quantity} x {self.product.name}{size_str}"
+
+    def get_addons_list(self):
+        if self.selected_addons:
+            import json
+            try:
+                return json.loads(self.selected_addons)
+            except Exception:
+                return []
+        return []
 
 class SocialPost(models.Model):
     title = models.CharField(max_length=200, blank=True)
