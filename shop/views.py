@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -649,7 +650,6 @@ def admin_required(view_func):
 
 def admin_login(request):
     # Auto-create admin superuser if it doesn't exist to prevent database sync locks
-    from django.contrib.auth.models import User
     if not User.objects.filter(username='admin').exists():
         User.objects.create_superuser('admin', 'admin@example.com', 'admin123')
         
