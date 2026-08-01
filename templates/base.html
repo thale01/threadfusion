@@ -57,6 +57,11 @@
                     <a class="nav-link text-main fw-medium" href="{% url 'product_list' %}">Shop</a>
                 </li>
                 {% if user.is_authenticated %}
+                    {% if user.is_staff or user.is_superuser %}
+                        <li class="nav-item">
+                            <a class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1 me-2 fw-semibold" href="{% url 'admin_home' %}">Admin Dashboard</a>
+                        </li>
+                    {% endif %}
                     <li class="nav-item">
                         <a class="nav-link text-main" href="{% url 'wishlist' %}" title="Wishlist">
                             <i class="fa-regular fa-heart"></i>
@@ -124,6 +129,7 @@
                         <li><a href="{% url 'shipping' %}" class="text-white-50 text-decoration-none small">Shipping Info</a></li>
                         <li><a href="{% url 'returns' %}" class="text-white-50 text-decoration-none small">Returns</a></li>
                         <li><a href="{% url 'contact' %}" class="text-white-50 text-decoration-none small">Contact Us</a></li>
+                        <li><a href="{% url 'admin_login' %}" class="text-white-50 text-decoration-none small"><i class="fa-solid fa-lock me-1" style="font-size: 10px;"></i>Admin Portal</a></li>
                     </ul>
                 </div>
                 <div class="col-lg-4" data-aos="fade-up" data-aos-delay="300">

