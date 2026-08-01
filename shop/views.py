@@ -674,6 +674,10 @@ def admin_logout(request):
     logout(request)
     return redirect('admin_login')
 
+def customer_logout(request):
+    logout(request)
+    return redirect('home')
+
 @admin_required
 def admin_home(request):
     from django.utils import timezone

@@ -8,7 +8,7 @@ urlpatterns = [
     path('product/<int:pk>/', views.product_detail, name='product_detail'),
     path('signup/', views.signup_view, name='signup'),
     path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
-    path('logout/', auth_views.LogoutView.as_view(next_page='home'), name='logout'),
+    path('logout/', views.customer_logout, name='logout'),
     path('profile/', views.profile_view, name='profile'),
     path('profile/add-address/', views.add_address, name='add_address'),
     path('cart/', views.cart_view, name='cart'),
